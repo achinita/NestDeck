@@ -1,0 +1,24 @@
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\SHARK Deck.exe
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\runtimes\win-x86\native\WebView2Loader.dll
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\runtimes\win-x64\native\WebView2Loader.dll
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\runtimes\win-arm64\native\WebView2Loader.dll
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\SHARK Deck.dll
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\SHARK Deck.deps.json
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\SHARK Deck.runtimeconfig.json
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\SHARK Deck.pdb
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\AudioSwitcher.AudioApi.dll
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\AudioSwitcher.AudioApi.CoreAudio.dll
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\GoogleCast.dll
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\WindowsInput.dll
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\Microsoft.Extensions.DependencyInjection.dll
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\Microsoft.Web.WebView2.Core.dll
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\Microsoft.Web.WebView2.WinForms.dll
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\Microsoft.Web.WebView2.Wpf.dll
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\Gma.System.MouseKeyHook.dll
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\Newtonsoft.Json.dll
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\protobuf-net.dll
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\protobuf-net.Core.dll
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\Zeroconf.dll
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\System.Reactive.dll
+C:\Users\anton\source\repos\Ares\Ares\bin\Release\net6.0-windows\app.publish\System.Reactive.xml

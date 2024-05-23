@@ -1,0 +1,8 @@
+C:\Users\anton\source\repos\Ares\Ares\obj\Debug\net7.0-windows\SHARK Deck.csproj.AssemblyReference.cache
+C:\Users\anton\source\repos\Ares\Ares\obj\Debug\net7.0-windows\SHARK_Deck.Properties.Resources.resources
+C:\Users\anton\source\repos\Ares\Ares\obj\Debug\net7.0-windows\Ares.SHARK.resources
+C:\Users\anton\source\repos\Ares\Ares\obj\Debug\net7.0-windows\SHARK Deck.csproj.GenerateResource.cache
+C:\Users\anton\source\repos\Ares\Ares\obj\Debug\net7.0-windows\SHARK Deck.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\anton\source\repos\Ares\Ares\obj\Debug\net7.0-windows\SHARK Deck.AssemblyInfoInputs.cache
+C:\Users\anton\source\repos\Ares\Ares\obj\Debug\net7.0-windows\SHARK Deck.AssemblyInfo.cs
+C:\Users\anton\source\repos\Ares\Ares\obj\Debug\net7.0-windows\SHARK Deck.csproj.CoreCompileInputs.cache

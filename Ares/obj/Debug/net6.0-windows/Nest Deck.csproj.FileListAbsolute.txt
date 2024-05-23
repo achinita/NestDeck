@@ -1,0 +1,40 @@
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net6.0-windows\Nest Deck.csproj.AssemblyReference.cache
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net6.0-windows\SHARK_Deck.ProcessFinder.resources
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net6.0-windows\Nest_Deck.Properties.Resources.resources
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net6.0-windows\Ares.SHARK.resources
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net6.0-windows\Nest Deck.csproj.GenerateResource.cache
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net6.0-windows\Nest Deck.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net6.0-windows\Nest Deck.AssemblyInfoInputs.cache
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net6.0-windows\Nest Deck.AssemblyInfo.cs
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net6.0-windows\Nest Deck.csproj.CoreCompileInputs.cache
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\Nest Deck.exe
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\Nest Deck.deps.json
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\Nest Deck.runtimeconfig.json
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\Nest Deck.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\Nest Deck.pdb
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\AudioSwitcher.AudioApi.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\AudioSwitcher.AudioApi.CoreAudio.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\EventSource4Net.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\WindowsInput.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\Microsoft.Extensions.DependencyInjection.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\Gma.System.MouseKeyHook.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\Newtonsoft.Json.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\protobuf-net.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\protobuf-net.Core.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\slf4net.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\websocket-sharp.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\Zeroconf.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\GoogleCast.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\System.Reactive.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\GoogleCast.pdb
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\GoogleCast.xml
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\System.Reactive.xml
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net6.0-windows\Nest Deck.csproj.CopyComplete
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net6.0-windows\Nest Deck.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net6.0-windows\refint\Nest Deck.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net6.0-windows\Nest Deck.pdb
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net6.0-windows\Nest Deck.genruntimeconfig.cache
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net6.0-windows\ref\Nest Deck.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net6.0-windows\Nest_Deck.Updater.resources
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net6.0-windows\Resources\server.htm
