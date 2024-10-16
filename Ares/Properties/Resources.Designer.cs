@@ -63,6 +63,16 @@ namespace Nest_Deck.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap author {
+            get {
+                object obj = ResourceManager.GetObject("author", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap icons8_cast_64 {
             get {
                 object obj = ResourceManager.GetObject("icons8-cast-64", resourceCulture);
@@ -106,6 +116,16 @@ namespace Nest_Deck.Properties {
         internal static System.Drawing.Bitmap NestDeck {
             get {
                 object obj = ResourceManager.GetObject("NestDeck", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap NestDeck_Icon {
+            get {
+                object obj = ResourceManager.GetObject("NestDeck_Icon", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

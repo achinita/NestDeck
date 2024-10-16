@@ -1,4 +1,4 @@
-﻿using AudioSwitcher.AudioApi.CoreAudio;
+﻿using NAudio.CoreAudioApi;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,51 +8,57 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using AudioSwitcher.AudioApi.CoreAudio;
 
 namespace SHARK_Deck
 {
     public class VolumeMixer
     {
-        public static void setGeneralVolume(int lvl)
-        {
-            CoreAudioDevice defaultPlaybackDevice = new CoreAudioController().DefaultPlaybackDevice;
+        AudioProcess mainVolume = new AudioProcess();
+        CoreAudioDevice defaultPlaybackDevice = new CoreAudioController().DefaultPlaybackDevice;
 
+        public VolumeMixer() {        
+        }
+        public void setGeneralVolume(int lvl)
+        {
             defaultPlaybackDevice.Volume = lvl;
         }
-        public static List<AudioProcess> GetAudioProcesses()
+        public List<AudioProcess> GetAudioProcesses()
         {
             List<AudioProcess> _out = new List<AudioProcess>();
 
-            foreach (AudioSession session in AudioUtilities.GetAllSessions())
+            var audioSessions = defaultPlaybackDevice.SessionController.ActiveSessions();
+            foreach (var session in audioSessions)
             {
-                if (session.Process != null)
+                if (session.ProcessId > 0)
                 {
                     //Get process
                     AudioProcess proc = new AudioProcess();
-                    proc.Name = session.Process.ProcessName;
+                    proc.Name = session.DisplayName;
                     proc.Volume = (int)VolumeMixer.GetApplicationVolume(session.ProcessId);
-                    proc.PId = session.Process.Id;
+                    proc.PId = session.ProcessId;
 
                     //Get Icon
-                    Icon ico = Icon.ExtractAssociatedIcon(session.Process.MainModule.FileName);
+                    Icon ico = Icon.ExtractAssociatedIcon(session.ExecutablePath);
                     MemoryStream ms = new MemoryStream();
                     PngFromIcon(ico).Save(ms, System.Drawing.Imaging.ImageFormat.Png);
                     ms.Close();
                     proc.Icon = Convert.ToBase64String(ms.ToArray());
 
                     _out.Add(proc);
-
-                    //VolumeMixer.SetApplicationVolume(session.ProcessId, 100);
-
                 }
             }
 
-            AudioProcess mainVolume = new AudioProcess();
-            CoreAudioDevice defaultPlaybackDevice = new CoreAudioController().DefaultPlaybackDevice;
             mainVolume.Volume = (int)defaultPlaybackDevice.Volume;
             mainVolume.Name = defaultPlaybackDevice.Name;
             _out.Insert(0,mainVolume);
             return _out;
+        }
+
+        public int GetMainVolumeLevel ()
+        {
+            var devChanged = defaultPlaybackDevice.DefaultChanged;
+            return (int)(defaultPlaybackDevice.Volume);
         }
         public struct AudioProcess
         {
@@ -60,6 +66,7 @@ namespace SHARK_Deck
             public int Volume;
             public string Name;
             public string Icon;
+            public bool isOBS;
         }
         public static Bitmap PngFromIcon(Icon icon)
         {

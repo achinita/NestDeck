@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AudioSwitcher.AudioApi;
+using AudioSwitcher.AudioApi.CoreAudio;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -111,7 +113,7 @@ namespace SHARK_Deck
             // get the speakers (1st render + multimedia) device
             try
             {
-                IMMDeviceEnumerator deviceEnumerator = (IMMDeviceEnumerator)(new MMDeviceEnumerator());
+                var deviceEnumerator = (IMMDeviceEnumerator)(new MMDeviceEnumerator());
                 IMMDevice speakers;
                 deviceEnumerator.GetDefaultAudioEndpoint(EDataFlow.eRender, ERole.eMultimedia, out speakers);
                 return speakers;
@@ -281,7 +283,7 @@ namespace SHARK_Deck
             [FieldOffset(0)]
             public IntPtr puuid;
         }
-
+        [ComImport]
         [Guid("A95664D2-9614-4F35-A746-DE8DB63617E6"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         private interface IMMDeviceEnumerator
         {

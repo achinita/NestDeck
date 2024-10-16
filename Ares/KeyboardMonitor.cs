@@ -4,7 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Gma.System.MouseKeyHook;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using Nest_Deck;
+using OBSWebsocketDotNet.Types;
+using WindowsInput;
 
 namespace SHARK_Deck
 {
@@ -32,25 +36,38 @@ namespace SHARK_Deck
             m_GlobalHook.KeyUp += M_GlobalHook_KeyUp;
         }
 
+        private enum EventType
+        {
+            KeyDown, KeyUp
+        }
+        private EventType _lastEvent;
         private void M_GlobalHook_KeyUp(object? sender, KeyEventArgs e)
         {
-            Console.WriteLine(e.KeyValue.ToString());
+            
             if (e.KeyValue == 9) IsTabPressed = false;
             if (e.KeyValue == 164) IsAltPressed = false;
+
+            if (_lastEvent == EventType.KeyDown) OnKeyPress(this, e);
+            _lastEvent = EventType.KeyUp;
+            //if (_pressedsKeys.Contains(e.KeyValue)) _pressedsKeys.Remove(e.KeyValue);
         }
 
         private void M_GlobalHook_KeyDown(object? sender, KeyEventArgs e)
         {
+
             if (e.KeyValue == 9) IsTabPressed= true;
             if (e.KeyValue == 164) IsAltPressed= true;
+            _lastEvent = EventType.KeyDown;
 
-         
+           // if (!_pressedsKeys.Contains(e.KeyValue)) _pressedsKeys.Add(e.KeyValue);
         }
 
-        private void GlobalHookKeyPress(object sender, KeyPressEventArgs e)
+        //List<int> _pressedsKeys = new List<int>();
+        public event EventHandler KeyPress;
+
+        protected virtual void OnKeyPress(object? sender, EventArgs e)
         {
-            Console.WriteLine("KeyPress: \t{0}", e.KeyChar);
+            KeyPress?.Invoke(this, e);
         }
-
     }
 }   

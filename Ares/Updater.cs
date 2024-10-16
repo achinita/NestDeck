@@ -16,7 +16,11 @@ namespace Nest_Deck
 {
     public partial class Updater : Form
     {
-        private const string currentVersion = "2.0";
+        private const string currentVersion = "2.88.2";
+        public static string GetCurrentVersion()
+        {
+            return currentVersion;
+        }
         private bool downloadComplete = false;
         private class VersionInfo
         {
@@ -47,7 +51,7 @@ namespace Nest_Deck
             if (progressPercentage == 100)
             {
                 downloadComplete = true;
-                //this.Close();
+                this.Close();
 
             }
         }
@@ -136,8 +140,9 @@ namespace Nest_Deck
             }
         }
         private const string _checkVersionWs = "https://achinita.outsystemscloud.com/SHARK2/rest/SynchronizeDevice/CheckLatestVersion";
-        public static void CheckVersion()
+        public static string CheckVersion()
         {
+            string version = "";
             try
             {
                 HttpClient client = new HttpClient();
@@ -147,6 +152,7 @@ namespace Nest_Deck
                 VersionInfo info = new VersionInfo();
                 info = JsonConvert.DeserializeObject<VersionInfo>(task.Result);
 
+                version = info.Version;
                 //New version available?
                 if (currentVersion != info.Version)
                 {
@@ -157,10 +163,12 @@ namespace Nest_Deck
                         frmDownload.DownloadUrl = info.URL;
                         frmDownload.ShowDialog();
                     }
+                    
                 }
 
             }
             catch { }
+            return version;
         }
 
         private void Updater_FormClosed(object sender, FormClosedEventArgs e)

@@ -17,29 +17,73 @@ using WindowsInput;
 using System.Xml;
 using System.Xml.Linq;
 using System.DirectoryServices.ActiveDirectory;
+using System.Windows.Interop;
+using WebSocketSharp;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using GoogleCast.Channels;
+using Microsoft.Extensions.DependencyInjection;
+
+using NAudio.Wave;
+using static SHARK_Deck.VolumeMixer;
+using System.Threading;
+using NAudio.CoreAudioApi;
+using System.Windows.Controls;
+using static Nest_Deck.Bluetooth;
+using System.Net.NetworkInformation;
+using System.Windows.Forms;
+using System;
 
 namespace Ares
 {
     public partial class SHARK : Form
     {
-        private const string _urlEditor =           "https://achinita.outsystemscloud.com/SHARK2/Config";
+        const string appName = "Nest Deck";
+        private const string _urlEditor = "https://achinita.outsystemscloud.com/SHARK2/Config";
         //private const string sseStreamUrl =         "https://achinita.outsystemscloud.com/SHARK_IS/rest/SSE/Subscribe";
-        private const string _urlRegisterDevice =   "https://achinita.outsystemscloud.com/SHARK2/rest/SynchronizeDevice/RegisterDevice?DeviceId=";
-        private const string _urlSendData =         "https://achinita.outsystemscloud.com/SHARK2/rest/SynchronizeDevice/SendData?DeviceId=";
+        private const string _urlRegisterDevice = "https://achinita.outsystemscloud.com/SHARK2/rest/SynchronizeDevice/RegisterDevice?DeviceId=";
+        private const string _urlSendData = "https://achinita.outsystemscloud.com/SHARK2/rest/SynchronizeDevice/SendData?DeviceId=";
 
         private Options opts = new Options();
+        private OBS OBS = new OBS();
         private bool autoSaveSettings = false;
+        private bool obsIsRunning = false;
+
+        private KeyboardMonitor keyboardMonitor = new KeyboardMonitor();
+        private VolumeMixer volumeMixer = new VolumeMixer();
+        private MediaPlayer mediaPlayer = new MediaPlayer();
+
+        private SSE events = new SSE();
+        private SSE editorEvents = new SSE();
+
+        List<Bluetooth.BtDevice> btDevices = new List<Bluetooth.BtDevice>();
+
         public SHARK()
         {
             InitializeComponent();
             SetStyle(ControlStyles.SupportsTransparentBackColor, true);
+
         }
-        KeyboardMonitor monitor = new KeyboardMonitor();
+        KeyCap keycap = new KeyCap();
 
         private async void ARES_Load(object sender, EventArgs e)
         {
+            debug("[Reminder] You can use gestures on your Nest Deck.");
+            debug(" - Swipe up to open the volume mixer");
+            debug(" - Swipe down to open the deck selector");
+            debug(" - Swipe left to navigate to the next deck");
+            debug(" - Swipe right to navigate to the previous deck");
+            debug(" Don't swipe too close to the edges of the screen or");
+            debug(" you'll trigger the Nesthub's native swipe.");
+            debug(" Start swiping closer to the center of the screen :)");
+            debug("");
+
             debug("Loading...");
-            toolStripMenuItem_AutoSwitch.Click += ToolStripMenuItem_AutoSwitch_Click;
+
+            //hw.GetBlutoothInfoAsync();
+            Utils.KillOtherInstances(appName);
+
+            lnkAbout.Text = Updater.GetCurrentVersion();
+
             opts.Load();
             LoadOptionsUI();
 
@@ -50,30 +94,153 @@ namespace Ares
                 btMinimize_Click(sender, e); //Minimize on start
             }
 
-            Updater.CheckVersion(); //Version check from web service
+            timerMonitorHardware_Tick(sender, e); //Monitor hardware
+
             await GetCastDevices(); //List cast devices
 
             InitializeCastResources();
-            debug("NestDeck loaded.");
             backgroundWorker1.RunWorkerAsync(); //HTTP Server start
-            if (opts.AutoCast && opts.DeviceId != "" && lstCastDevices.SelectedIndices.Count > 0) { btCast_Click(sender, new EventArgs()); } //Auto cast on start
+
+            OBS.WebSocket.Connected += WebSocket_Connected;
+            OBS.WebSocket.Disconnected += WebSocket_Disconnected;
+            OBS.UpdatedData += OBS_UpdatedData;
+            OBS.UpdatedRecordingStatus += OBS_UpdatedRecordingStatus;
+            OBS.UpdatedStreamingStatus += OBS_UpdatedStreamingStatus;
+            mediaPlayer.SongChanged += MediaPlayer_SongChanged;
+            hw.VPNChanged += Hw_VPNChanged;
+
+            debug("NestDeck loaded.");
+            timerMonitorProcess.Enabled = true;
+
+            Updater.CheckVersion(); //Version check from web service
+            if (opts.AutoCast && opts.DeviceId != "" && cmbDeviceList.SelectedIndex >= 0) { btCast_Click(sender, new EventArgs()); } //Auto cast on start
+
+
+            //mediaPlayer.Play("holygrenade.mp3");
+        }
+
+        //Need to restore connections on vpn status changed
+        private async void Hw_VPNChanged(object? sender, EventArgs e)
+        {
+            LogMessage("[VPN Status] " + (hw.HasVPNConnection ? "Connected" : "Disconnected"));
+
+            if (cast_connected) await events.Connect(opts.DeviceId);
+            if (opts.Auth != null && opts.Auth != "") await editorEvents.Connect(opts.Auth);
+            SendSystemInfo();
+
+        }
+
+        private void MediaPlayer_SongChanged(object? sender, EventArgs e)
+        {
+            //LogMessage(mediaPlayer.MediaName  + " - " + (mediaPlayer.IsPlaying?"Playing":"Paused"));
+            SendSystemInfo();
+        }
+
+        private void OBS_UpdatedStreamingStatus(object? sender, EventArgs e)
+        {
+            if (OBS.isRecording)
+            {
+                LogMessage("[OBS] Streaming started");
+            }
+            else
+            {
+                LogMessage("[OBS] Streaming stopped");
+            }
+            if (cast_connected)
+            {
+                SendData(SSE.MessageEnvelope.Build(SSE.Messages.OBSStatus, OBS.Serialize()));
+            }
+            OBSUIChange();
+        }
+
+        private void OBS_UpdatedRecordingStatus(object? sender, EventArgs e)
+        {
+            if (OBS.isRecording)
+            {
+                LogMessage("[OBS] Recording started");
+            }
+            else
+            {
+                LogMessage("[OBS] Recording stopped");
+            }
+            if (cast_connected)
+            {
+                SendData(SSE.MessageEnvelope.Build(SSE.Messages.OBSStatus, OBS.Serialize()));
+            }
+            OBSUIChange();
+        }
+
+        private void Monitor_KeyPress(object? sender, EventArgs e)
+        {
+            if (keycap.Visible)
+            {
+                KeyEventArgs keys = (KeyEventArgs)e;
+                keycap.SetKeys(keys);
+            }
+        }
+
+        private void OBS_UpdatedData(object? sender, EventArgs e)
+        {
+            var obsInfo = OBS.Serialize();
+            SSEMessage(opts.Auth, SSE.Messages.OBSData + " " + obsInfo); //Send data to Deck Editor
+        }
+
+        private void WebSocket_Disconnected(object? sender, OBSWebsocketDotNet.Communication.ObsDisconnectionInfo e)
+        {
+            OBSUIChange();
+            if (e.WebsocketDisconnectionInfo.Exception != null) LogMessage("OBS WebSocket disconnected: " + e.WebsocketDisconnectionInfo.Exception.Message);
+            else LogMessage("OBS WebSocket disconnected");
+        }
+
+        private void WebSocket_Connected(object? sender, EventArgs e)
+        {
+            OBSUIChange();
+            LogMessage("OBS WebSocket connected");
+        }
+
+        class DeviceItem
+        {
+            public string Name { get; }
+            public IReceiver Receiver { get; }
+            public DeviceItem(IReceiver receiver)
+            {
+                Name = receiver.FriendlyName;
+                Receiver = receiver;
+            }
+
+            public override string ToString()
+            {
+                return Name + " (" + Receiver.Model + ")";
+            }
+
         }
         async private Task GetCastDevices()
         {
+            btRefreshCastDevices.Enabled = false;
             debug("Looking for cast devices...");
-            lstCastDevices.Items.Clear();
+            cmbDeviceList.Items.Clear();
             var receivers = await new DeviceLocator().FindReceiversAsync();
 
             foreach (var receiver in receivers)
             {
-                var itm = new System.Windows.Forms.ListViewItem(receiver.FriendlyName);
-                itm.SubItems.Add(receiver.Model);
-                itm.Tag = receiver;
-                itm.Selected = (receiver.Id == opts.DeviceId);
-                lstCastDevices.Items.Add(itm);
+                var r = new DeviceItem(receiver);
+                cmbDeviceList.Items.Add(r);
+                if (receiver.Id == opts.DeviceId) cmbDeviceList.SelectedIndex = cmbDeviceList.Items.Count - 1;
             }
-            lstCastDevices.Focus();
-            debug(lstCastDevices.Items.Count + " devices found.");
+
+            if (cmbDeviceList.Items.Count == 0) cmbDeviceList.Enabled = false;
+            else cmbDeviceList.Enabled = true;
+            btRefreshCastDevices.Enabled = true;
+
+            if (cmbDeviceList.Items.Count > 0) debug(cmbDeviceList.Items.Count + " devices found.");
+            else
+            {
+                debug("[Error] No devices found.", false, true);
+                debug("Are you using a VPN?? Nest Deck can't detect your nest hub while you're using some VPNs.", false, true);
+                debug("Turn OFF your VPN, click the refresh button, then you can turn it back ON again once there are detected devices.", false, true);
+                debug("Is the Nest Hub on the same network? Your PC must be connected to the same network as the Nest Hub.", false, true);
+            }
+
         }
         //******************************** MODS
         public class Action
@@ -82,14 +249,24 @@ namespace Ares
             public string Data { get; set; }
             public string ExtraData { get; set; }
         }
-
-
-
-        private static string handleAction(Action a)
+        private string handleAction(Action a)
         {
             string errMsg = "";
             switch (a.ActionType)
             {
+                case SSE.Actions.OBSCommand:
+                    {
+                        if (obsIsRunning)
+                        {
+                            if (OBS.WebSocket.IsConnected)
+                            {
+                                OBS.handleCommand(a.Data);
+                            }
+                            else LogMessage("[Error] Received OBS action but OBS WebSocket is not connected", true);
+                        }
+                        else LogMessage("[Error] Received OBS action but OBS is not running", true);
+                        break;
+                    }
                 case "ActivateProcess":
                     {
                         activateProcess(a.Data);
@@ -101,8 +278,8 @@ namespace Ares
                         List<WindowsInput.Native.VirtualKeyCode> modifiers = new List<WindowsInput.Native.VirtualKeyCode>();
                         List<WindowsInput.Native.VirtualKeyCode> keys = new List<WindowsInput.Native.VirtualKeyCode>();
 
-                        if (a.ExtraData != null) foreach (string k in a.ExtraData.Split(',')) modifiers.Add((WindowsInput.Native.VirtualKeyCode)int.Parse(k));
-                        if (a.Data != null) foreach (string k in a.Data.Split(',')) keys.Add((WindowsInput.Native.VirtualKeyCode)int.Parse(k));
+                        if (a.ExtraData != null && a.ExtraData != "") foreach (string k in a.ExtraData.Split(',')) modifiers.Add((WindowsInput.Native.VirtualKeyCode)int.Parse(k));
+                        if (a.Data != null && a.Data != "") foreach (string k in a.Data.Split(',')) keys.Add((WindowsInput.Native.VirtualKeyCode)int.Parse(k));
 
                         inp.Keyboard.ModifiedKeyStroke(modifiers, keys);
                         break;
@@ -124,7 +301,7 @@ namespace Ares
                         }
                         catch (Exception ex)
                         {
-                            errMsg = "There was an error running file or process. (" + ex.Message + ")";
+                            errMsg = "[Error] There was an error running file or process. (" + ex.Message + ")";
                         }
                         break;
                     }
@@ -137,13 +314,20 @@ namespace Ares
                     {
                         break;
                     }
+                case SSE.Actions.AudioPlay:
+                    {
+                        var errorMsg = mediaPlayer.Play(a.Data);
+                        if (errorMsg != string.Empty) LogMessage(errorMsg, true);
+                        break;
+                    }
             }
             return errMsg;
         }
 
-
+        private System.Windows.Forms.OpenFileDialog findFileDialog;
         private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
+            if (e.UserState == null) return;
             string msg = (string)e.UserState;
             if (msg.IndexOf("auth") == 0)
             {
@@ -154,16 +338,18 @@ namespace Ares
                 var debugMessage = "NestDeck has sucessfully paired with the editor.";
                 debug(debugMessage);
                 notifyIcon.ShowBalloonTip(10, "Pair success", debugMessage, ToolTipIcon.None);
-                SSEMessage(authString, "synchOkAuth");
+                SSEMessage(authString, SSE.Messages.EditorRespondSync);
+                OBS_UpdatedData(sender, e);
                 editorEvents.Disconnect();
                 editorEvents.Connect(opts.Auth);
             }
             if (msg == "lookForFile")
             {
-                var f = new System.Windows.Forms.OpenFileDialog();
-                var result = f.ShowDialog();
+                findFileDialog = new System.Windows.Forms.OpenFileDialog();
+                findFileDialog.Filter = "All Files (*.*)|*.*";
+                var result = findFileDialog.ShowDialog();
 
-                if (result == DialogResult.OK) SSEMessage(opts.Auth, "file " + f.FileName);
+                if (result == DialogResult.OK) SSEMessage(opts.Auth, "file " + findFileDialog.FileName);
                 else SSEMessage(opts.Auth, "file");
             }
             if (msg == "lookForProcess")
@@ -177,18 +363,44 @@ namespace Ares
             {
                 btCast_Click(sender, new EventArgs());
             }
+            if (msg == SSE.Actions.FindAudio)
+            {
+                //this.Location = new Point(1, 1);
+                findFileDialog = new System.Windows.Forms.OpenFileDialog();
+
+                findFileDialog.Filter = "Audio (*.mp3,*.acc,*wma)|*.acc;*.mp3;*.wma;*.wav|All Files (*.*)|*.*";
+                var result = findFileDialog.ShowDialog();
+                if (result == DialogResult.OK) SSEMessage(opts.Auth, "file " + findFileDialog.FileName);
+                else SSEMessage(opts.Auth, "file");
+            }
             //else debug(msg);
         }
 
-        private string _activeProcess = "";
+        private Utils.ActiveWindow _activeWindow;
         private void timer1_Tick(object sender, EventArgs e)
         {
-            string currentActiveProcess = GetActiveProcess();
-            if (_activeProcess != currentActiveProcess && !monitor.IsAltPressed)
-            {
-                if (_activeProcess != "") SendData("activeProcess|" + currentActiveProcess);
-                _activeProcess = currentActiveProcess;
 
+            var obsProc = Process.GetProcessesByName("obs64");
+            var obsWasRunning = obsIsRunning;
+            obsIsRunning = obsProc.Length > 0;
+
+            if (obsWasRunning != obsIsRunning)
+            {
+                LogMessage("OBS has " + (obsIsRunning ? "started" : "shutdown"));
+                SetOBSUI();
+                if (obsIsRunning) btOBSWSConnect_Click(sender, e); //Auto try connect
+            }
+
+            if (opts.MonitorProcess)
+            {
+                var currentActiveWindow = Utils.GetActiveWindow();
+                //Null = First process change
+                if (_activeWindow == null || (_activeWindow.isDifferent(currentActiveWindow) && !keyboardMonitor.IsAltPressed))
+                {
+                    if (_activeWindow != null) SendData(SSE.MessageEnvelope.Build(SSE.Messages.ProcessChanged, currentActiveWindow.Serialize()));
+                    _activeWindow = currentActiveWindow;
+
+                }
             }
         }
 
@@ -204,13 +416,12 @@ namespace Ares
         private void InitializeCastResources()
         {
             bool cast_connected = false;
-            events.OnMessage += Events_OnMessage;
-            events.OnStatusChange += Events_OnStatusChange;
             chromecastSender.Disconnected += ChromecastSender_Disconnected;
-
 
             editorEvents.OnMessage += Events_OnMessage;
             editorEvents.OnStatusChange += Events_OnStatusChange;
+            events.OnMessage += Events_OnMessage;
+            events.OnStatusChange += Events_OnStatusChange;
 
             if (opts.Auth != "") editorEvents.Connect(opts.Auth);
         }
@@ -222,7 +433,7 @@ namespace Ares
                 case EventSource4Net.EventSourceState.CLOSED:
                     {
                         statusData.Image = Resources.icons8_no_network_16;
-                        debug("Data connection closed.");
+                        LogMessage("Data connection closed.");
                         break;
                     }
                 case EventSource4Net.EventSourceState.OPEN:
@@ -234,110 +445,249 @@ namespace Ares
             }
         }
 
+        public delegate void debugmt(string line, bool hideTimestamp = false, bool isError = false, bool verboseOnly = false);
+        public delegate void SetOBSUImt();
         Dispatcher UserDispatcher = Dispatcher.CurrentDispatcher;
-        private void LogMessage(string msg)
+        private void LogMessage(string msg, bool isError = false, bool verboseOnly = false)
         {
             debugmt del = new debugmt(debug);
-            UserDispatcher.Invoke(del, msg, false);
+            UserDispatcher.Invoke(del, msg, false, isError, verboseOnly);
         }
-        [STAThread]
+        private void OBSUIChange()
+        {
+            SetOBSUImt del = new SetOBSUImt(SetOBSUI);
+            UserDispatcher.Invoke(del);
+        }
+
+        private void StartDetectKeys()
+        {
+            SetOBSUImt del = new SetOBSUImt(DetectKeys);
+            UserDispatcher.Invoke(del);
+        }
+        private void DetectKeys()
+        {
+            keycap = new KeyCap();
+            var res = keycap.ShowDialog();
+            if (res == DialogResult.OK)
+            {
+
+                SSE.KeyStroke keystroke = new SSE.KeyStroke();
+                foreach (var k in keycap.Modifiers) keystroke.Modifiers.Add((int)k);
+                keystroke.Key = (int)keycap.Key.First();
+
+                SSEMessage(opts.Auth, SSE.Messages.KeysDetected + keystroke.Serialize());
+            }
+        }
+        private void Verbose(string message)
+        {
+            LogMessage(message, false, true); //Verbose
+        }
+        private string lastSentMessage = "";
         private void Events_OnMessage(object sender, SSE.SSEArguments eventArgs)
         {
-            
-            eventArgs.Message = eventArgs.Message.ReplaceLineEndings("");
-            var command = eventArgs.Message;
-            string[] args = eventArgs.Message.Split(' ');
-            if (args.Length > 0)
+            bool blockVerbose = false;
+            eventArgs.Message = eventArgs.Message.TrimEnd('\r', '\n');
+            try
             {
-                switch (args[0])
+                SSE.MessageEnvelope sseMsg = SSE.MessageEnvelope.Deserialize(eventArgs.Message);
+
+
+                if (sseMsg != null) //Standardized Messages
                 {
-                    case SSE.Messages.AuthenticationRequest:
-                        {
-                            LogMessage("Application initialized. Pairing...");
-
-                            HttpClient client = new HttpClient();
-                            client.GetAsync(_urlRegisterDevice + opts.DeviceId + "&AuthData=" + opts.Auth);
-                            break;
-                        }
-                    case SSE.Messages.Ping:
-                        {
-                            string json = "{'Model':'"+receiver.Model+"','Capabilities':'"+receiver.Capabilities+"'}";
-                            SendData(SSE.Messages.Pong + json);
-                            break;
-                        }
-                    case SSE.Messages.ConnectionSuccess:
-                        {
-                            LogMessage("Application paired. Ready.");
-                            break;
-                        }
-                    case SSE.Messages.Timeout:
-                        {
-                            LogMessage("Chromecast application lost connection to Windows. (Timeout)");
-                            if (cast_connected) backgroundWorker1.ReportProgress(1, "forceDisconnect");
-                            break;
-                        }
-                    default:
-                        {
-                            //UserDispatcher.Invoke(del, eventArgs.Message);
-                            break;
-                        }
-                }
-            }
-
-            switch (command)
-            {
-                case "reqAudio":
+                    switch (sseMsg.type)
                     {
-                        string json = JsonConvert.SerializeObject(VolumeMixer.GetAudioProcesses());
-                        LogMessage("Audio levels check");
-                        SendData("audioData|" + json);
-                        break;
-                    }
-                case "lookForFile":
-                    {
-                        backgroundWorker1.ReportProgress(1, "lookForFile");
-                        break;
-                    }
-                case "lookForProcess":
-                    {
-                        backgroundWorker1.ReportProgress(1, "lookForProcess");
-                        break;
-                    }
-                default:
-                    {
-                        if (command.IndexOf("setVol|") == 0)
-                        {
-                            command = command.Replace("setVol|", "");
-                            VolumeMixer.AudioProcess proc = JsonConvert.DeserializeObject<VolumeMixer.AudioProcess>(command);
-
-                            LogMessage("Setting volume of " + proc.Name + " to " + proc.Volume + "%");
-
-                            if (proc.PId == 0) VolumeMixer.setGeneralVolume(proc.Volume);
-                            else VolumeMixer.SetApplicationVolume(proc.PId, proc.Volume);
-                        }
-                        else
-                        {
-                            try
+                        case SSE.Actions.FindAudio:
                             {
-                                if (command.IndexOf("[tapDeckButton]") == 0)
+                                backgroundWorker1.ReportProgress(1, sseMsg.type);
+                                break;
+                            }
+                        case SSE.Actions.AudioPlay:
+                            {
+                                var errorMsg = mediaPlayer.Play(sseMsg.data);
+                                if (errorMsg != string.Empty) LogMessage(errorMsg, true);
+                                break;
+                            }
+                        case SSE.Messages.TestAction:
+                            {
+                                try
                                 {
-                                    command = command.Replace("[tapDeckButton]", "");
-                                    List<Action> actions = JsonConvert.DeserializeObject<List<Action>>(command);
-                                    LogMessage("Button pressed. Running " + actions.Count + " actions");
+                                    List<Action> actions = JsonConvert.DeserializeObject<List<Action>>(sseMsg.data);
+                                    LogMessage("Test. Running " + actions.Count + " actions");
                                     foreach (Action a in actions)
                                     {
                                         string err = handleAction(a);
                                         if (err != "") LogMessage(err);
                                     }
                                 }
+                                catch (Exception ex)
+                                {
+                                    LogMessage("[Error] Error executing command: " + ex.Message, true);
+                                }
+                                break;
                             }
-                            catch (Exception ex)
-                            {
-                                LogMessage("Error handling request. " + ex.Message);
-                            }
-                        }
-                        break;
+                        default: break;
                     }
+                    return;
+                }
+                else
+                {
+                    //Old message system
+
+                    eventArgs.Message = eventArgs.Message.ReplaceLineEndings("");
+                    var command = eventArgs.Message;
+                    string[] args = eventArgs.Message.Split(' ');
+                    if (args.Length > 0)
+                    {
+                        string cmd = args[0];
+                        var commandData = "";
+                        if (args.Length > 1) commandData = command.Substring(cmd.Length, command.Length - cmd.Length).Trim();
+
+                        switch (cmd)
+                        {
+                            case SSE.Messages.ForceRefresh:
+                                {
+                                    //If connection to nesthub 
+                                    if (cast_connected)
+                                    {
+                                        //Trigger on device
+                                        SendData(SSE.Messages.ForceRefresh_Evt);
+                                    }
+                                    else
+                                    {
+                                        LogMessage("[Error] Received refresh command, but cast has not been started", true);
+                                    }
+                                    break;
+                                }
+                            case SSE.Messages.OpenKeyDetection:
+                                {
+                                    StartDetectKeys();
+                                    break;
+                                }
+                            case SSE.Messages.AuthenticationRequest:
+                                {
+                                    LogMessage("Application initialized. Pairing...");
+                                    HttpClient client = new HttpClient();
+                                    client.GetAsync(_urlRegisterDevice + opts.DeviceId + "&AuthData=" + opts.Auth);
+                                    break;
+                                }
+                            case SSE.Messages.Ping:
+                                {
+                                    sendPong(args[1]);
+                                    break;
+                                }
+                            case SSE.Messages.ConnectionSuccess:
+                                {
+                                    sendPong();
+                                    LogMessage("Application paired. Ready.");
+                                    break;
+                                }
+                            case SSE.Messages.Timeout:
+                                {
+                                    LogMessage("Chromecast application lost connection to Windows. (Timeout)");
+                                    if (cast_connected) backgroundWorker1.ReportProgress(1, "forceDisconnect");
+                                    break;
+                                }
+                            case SSE.Messages.ButtonTap:
+                                {
+                                    try
+                                    {
+                                        if (opts.PlaySounds && opts.PlayOnPc) mediaPlayer.SystemSound_Switch();
+
+                                        List<Action> actions = JsonConvert.DeserializeObject<List<Action>>(commandData);
+                                        LogMessage("Button pressed. Running " + actions.Count + " actions");
+                                        foreach (Action a in actions)
+                                        {
+                                            string err = handleAction(a);
+                                            if (err != "") LogMessage(err);
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogMessage("[Error] Error executing command: " + ex.Message, true);
+                                    }
+                                    break;
+                                }
+                            default:
+                                {
+                                    //UserDispatcher.Invoke(del, eventArgs.Message);
+                                    break;
+                                }
+                        }
+                    }
+
+
+                    if (command.IndexOf("checkConnection") >= 0) blockVerbose = true; //block connection info received
+
+                    switch (command)
+                    {
+                        case "reqAudio":
+                            {
+                                //LogMessage("Audio levels check requested");
+                                var audioProcesses = volumeMixer.GetAudioProcesses();
+                                //something
+                                foreach (var device in OBS.GetAudioDevices())
+                                {
+                                    AudioProcess proc = new AudioProcess();
+                                    proc.isOBS = true;
+                                    proc.Name = device.Name;
+                                    proc.Volume = device.Volume;
+                                    audioProcesses.Add(proc);
+                                }
+
+                                string json = JsonConvert.SerializeObject(audioProcesses);
+
+                                LogMessage("Audio levels - Main volume " + audioProcesses.First().Volume + "% | Processes: " + (audioProcesses.Count - 1));
+                                SendData("audioData|" + json);
+                                break;
+                            }
+                        case "lookForFile":
+                            {
+                                backgroundWorker1.ReportProgress(1, "lookForFile");
+                                break;
+                            }
+                        case "lookForProcess":
+                            {
+                                backgroundWorker1.ReportProgress(1, "lookForProcess");
+                                break;
+                            }
+                        default:
+                            {
+                                if (command.IndexOf("setVol|") == 0)
+                                {
+
+                                    command = command.Replace("setVol|", "");
+                                    VolumeMixer.AudioProcess proc = JsonConvert.DeserializeObject<VolumeMixer.AudioProcess>(command);
+
+                                    LogMessage("Setting volume of " + proc.Name + " to " + proc.Volume + "%");
+
+                                    if (!proc.isOBS)
+                                    {
+                                        if (proc.PId == 0) volumeMixer.setGeneralVolume(proc.Volume);
+                                        else VolumeMixer.SetApplicationVolume(proc.PId, proc.Volume);
+                                    }
+                                    else
+                                    {
+                                        if (OBS.IsConnected)
+                                        {
+                                            OBS.OBSData cmd = new OBS.OBSData();
+                                            cmd.Command = OBS.Commands.InputSetVolume;
+                                            cmd.Parameter1 = proc.Name;
+                                            cmd.Parameter2 = (-1 * (100 - proc.Volume)).ToString();
+
+                                            OBS.handleCommand(cmd.Serialize());
+                                        }
+                                    }
+                                }
+                                break;
+                            }
+                    }
+                }
+                if (blockVerbose) return;
+                if (eventArgs.Message != lastSentMessage) Verbose("RECEIVED: " + eventArgs.Message);
+            }
+            catch (Exception ex)
+            {
+                LogMessage("[Error] Error decoding network message: " + eventArgs.Message, true);
             }
 
         }
@@ -345,19 +695,19 @@ namespace Ares
         private void SSEMessage(string channel, string data)
         {
             WebClient wc = new WebClient();
-            string url = _urlSendData + channel;
+            var url = new Uri(_urlSendData + channel);
 
             wc.Headers[HttpRequestHeader.ContentType] = "text/plain; charset=utf-8";
-            var x = wc.UploadString(url, data);
+            wc.UploadStringAsync(url, data);
+
+            lastSentMessage = data;
+            Verbose("SENT: " + data);
         }
         private void SendData(string data)
         {
+            //events.PostMessage(data);
             SSEMessage(opts.DeviceId, data);
         }
-        private SSE events = new SSE();
-        private SSE editorEvents = new SSE();
-        
-
         private async void btCast_Click(object sender, EventArgs e)
         {
             if (opts.Auth == "")
@@ -373,15 +723,21 @@ namespace Ares
 
                 return;
             }
+            if (cmbDeviceList.SelectedIndex == -1)
+            {
+                debug("[Error] You must first select a chromecast enabled device on the dropdown", false, true);
+                if (cmbDeviceList.Items.Count == 0) debug("[Error] No devices detected. Use the tools menu to refresh the device list.", false, true);
+                return;
+            }
             btCast.Enabled = false;
             if (!cast_connected)
             {
                 try
                 {
-
+                    cmbDeviceList.Enabled = false;
                     debug("Connecting to server...");
 
-                    receiver = (IReceiver)lstCastDevices.SelectedItems[0].Tag;
+                    receiver = ((DeviceItem)(cmbDeviceList.SelectedItem)).Receiver;
                     opts.DeviceId = receiver.Id;
                     opts.Save();
                     //debug("Initializing connection...");
@@ -395,19 +751,16 @@ namespace Ares
                     // Connect to the Chromecast
                     chromecastSender.Connect(receiver);
 
-                    //var mediaChannel = chromecastSender.GetChannel<IApplicationChannel>();
-
-
                     //1A79419F New
                     //8A47528F Old
                     receiverStatus = await chromecastSender.LaunchAsync("1A79419F");
 
-
                     debug("Chromecast initialized.");
                     cast_connected = true;
-                    //chromecastSender.SendAsync("", new GoogleCast.Messages.Message(), "receiver");
                     statusCast.Image = Resources.icons8_connection_status_on_16;
                     btCast.Text = "Disconnect";
+                    cmbDeviceList.Enabled = false;
+                    //cmbDevices.Font = new Font(cmbDevices.Font, FontStyle.Bold);
 
                 }
                 catch (Exception ex)
@@ -415,7 +768,9 @@ namespace Ares
                     SendData(SSE.Messages.TerminationSignal);
                     statusCast.Image = Resources.icons8_no_network_16;
                     cast_connected = false;
-                    btCast.Text = "Cast";
+                    btCast.Text = "📺 Cast";
+                    cmbDeviceList.Enabled = true;
+                    //cmbDevices.Font = new Font(cmbDevices.Font, FontStyle.Regular);
                     debug(ex.Message);
                 }
             }
@@ -427,7 +782,9 @@ namespace Ares
                 chromecastSender.Disconnect();
                 events.Disconnect();
                 statusCast.Image = Resources.icons8_no_network_16;
-                btCast.Text = "Cast";
+                btCast.Text = "📺 Cast";
+                cmbDeviceList.Enabled = true;
+                //cmbDevices.Font = new Font(cmbDevices.Font, FontStyle.Regular);
 
                 SendData(SSE.Messages.TerminationSignal);
             }
@@ -439,12 +796,12 @@ namespace Ares
             receiver = null;
             cast_connected = false;
             statusCast.Image = Resources.icons8_no_network_16;
-            btCast.Text = "Cast";
+            btCast.Text = "📺 Cast";
+            cmbDeviceList.Enabled = true;
+            //cmbDevices.Font = new Font(cmbDevices.Font, FontStyle.Regular);
             debug("Chromecast connection closed");
         }
         #endregion
-
-
         /**********************************************************************************************************/
         #region Options
         private void toolstripOpenDeckEditor_Click(object sender, EventArgs e)
@@ -455,37 +812,35 @@ namespace Ares
 
             Process.Start(pi);
         }
-
-        private void optWindowsStart_Click(object sender, EventArgs e)
-        {
-            RegistryKey rk = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-
-            if (optWindowsStart.Checked)
-                rk.SetValue("SharkDeck", System.Windows.Forms.Application.ExecutablePath);
-            else
-                rk.DeleteValue("SharkDeck", false);
-
-            SaveSettings(sender, e);
-        }
-
-        private void optAutoSwitchDeck_Click(object sender, EventArgs e)
-        {
-            timerMonitorProcess.Enabled = optAutoSwitchDeck.Checked;
-            toolStripMenuItem_AutoSwitch.Checked = optAutoSwitchDeck.Checked;
-            toolStripMenuItem_AutoSwitch.Checked = optAutoSwitchDeck.Checked;
-            SaveSettings(sender, e);
-        }
         private void SaveSettings(object sender, EventArgs e)
         {
             if (autoSaveSettings)
             {
-                opts.StartWithWindows = optWindowsStart.Checked;
-                opts.StartMinimized = optSystray.Checked;
-                opts.MonitorProcess = optAutoSwitchDeck.Checked;
-                opts.AutoCast = optAutoCast.Checked;
+                opts.StartWithWindows = chkWindowsStart.Checked;
+                opts.StartMinimized = chkStartTray.Checked;
+                opts.MonitorProcess = chkMonitorProcess.Checked;
+                opts.AutoCast = chkAutoStartCast.Checked;
+                opts.OBSPort = (int)numOBSPort.Value;
+                opts.OBSPassword = txtOBSPwd.Text;
+                opts.AlwaysOnTop = chkAlwaysOnTop.Checked;
+                opts.PlaySounds = chkPlaySounds.Checked;
+                opts.PlayOnPc = rdAudioFeedback_PlayInPc.Checked;
+                opts.ShowTrail = chkShowTrail.Checked;
+                opts.EnableBluetoothMonitoring = chkEnableBluetoothMonitoring.Checked;
+
+                //Update UI
+                this.TopMost = chkAlwaysOnTop.Checked;
+                this.rdAudioFeedback_PlayInNH.Enabled = chkPlaySounds.Checked;
+                this.rdAudioFeedback_PlayInPc.Enabled = chkPlaySounds.Checked;
+
 
                 opts.Save();
             }
+        }
+        private void SaveSettingsAndUpdateHub(object sender, EventArgs e)
+        {
+            SaveSettings(sender, e);
+            SendSystemInfo();
         }
         #endregion
         #region Utils
@@ -528,61 +883,45 @@ namespace Ares
                 Process p = new Process();
                 foreach (Process proc in processes) p = proc;
 
-                BringWindowToFront(p);
+                Utils.BringWindowToFront(p);
             }
         }
         #endregion
         #region Imports
-        [DllImport("user32.dll")]
-        static extern bool SetForegroundWindow(IntPtr hWnd);
 
-        [DllImport("user32.dll")]
-        private static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
-        [DllImport("user32.dll")]
-        private static extern bool IsIconic(IntPtr hWnd);
-
-        [DllImport("user32.dll")]
-        public static extern IntPtr GetWindowThreadProcessId(IntPtr hWnd, out uint ProcessId);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
-
-        private static string GetActiveProcess()
-        {
-            IntPtr hwnd = GetForegroundWindow();
-            uint pid;
-            GetWindowThreadProcessId(hwnd, out pid);
-            Process p = Process.GetProcessById((int)pid);
-            return p.ProcessName;
-        }
-
-        private static void BringWindowToFront(Process p)
-        {
-            const int SW_HIDE = 0;
-            const int SW_SHOWNORMAL = 1;
-            const int SW_SHOWMINIMIZED = 2;
-            const int SW_SHOWMAXIMIZED = 3;
-            const int SW_SHOWNOACTIVATE = 4;
-            const int SW_RESTORE = 9;
-            const int SW_SHOWDEFAULT = 10;
-
-            IntPtr hWnd = p.MainWindowHandle;
-            // if iconic, we need to restore the window
-            if (IsIconic(hWnd))
-            {
-                ShowWindowAsync(hWnd, SW_RESTORE);
-                Thread.Sleep(200);
-            }
-            // bring it to the foreground
-            SetForegroundWindow(hWnd);
-
-        }
         #endregion
         #region UI
-        private void ToolStripMenuItem_AutoSwitch_Click(object? sender, EventArgs e)
+        private void SetOBSUI()
         {
-            optAutoSwitchDeck.Checked = toolStripMenuItem_AutoSwitch.Checked;
-            optAutoSwitchDeck_Click(sender, e);
+            lblOBSStatus.Text = (obsIsRunning ? "Running" : "Not Running");
+            lblOBSStatus.ForeColor = (obsIsRunning ? Color.Green : Color.Red);
+
+            lblOBSWSStatus.Text = OBS.WebSocket.IsConnected ? (OBS.isRecording || OBS.isRecording ? (OBS.isRecording ? "● Recording" : "📡 Streaming") : "Connected") : "Not connected";
+            lblOBSWSStatus.ForeColor = (OBS.WebSocket.IsConnected ? Color.Green : Color.Red);
+            lblOBSSocket.Text = lblOBSWSStatus.Text;
+
+            btOBSWSConnect.Enabled = true;
+            btOBSWSConnect.Text = OBS.WebSocket.IsConnected ? "Disconnect" : "Connect";
+        }
+        private void toolClearLog_Click(object sender, EventArgs e)
+        {
+            txtDebugColor.Text = "";
+
+        }
+
+        private void toolRefreshDevices_Click(object sender, EventArgs e)
+        {
+            GetCastDevices();
+        }
+
+        private void numOBSPort_ValueChanged(object sender, EventArgs e)
+        {
+            SaveSettings(sender, e);
+        }
+
+        private void txtOBSPwd_TextChanged(object sender, EventArgs e)
+        {
+            SaveSettings(sender, e);
         }
         private void resetAllOptionsToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -594,26 +933,61 @@ namespace Ares
             {
                 opts = new Options();
                 opts.Save();
+                lastDeviceSignature = "";
 
                 LoadOptionsUI();
+                timerMonitorHardware_Tick(sender, e);
                 debug("Default options set.");
             }
         }
         private void LoadOptionsUI()
         {
             pictureLogo.BackColor = Color.Transparent;
-            txtDebug.BackColor = Color.FromArgb(34, 34, 34);
-            pbBackground.BackColor = txtDebug.BackColor;
-            pictureLogo.BackColor = txtDebug.BackColor;
-            lstCastDevices.TileSize = new Size(lstCastDevices.Size.Width, 24);
+            txtDebugColor.BackColor = Color.FromArgb(34, 34, 34);
+            pbBackground.BackColor = txtDebugColor.BackColor;
+            pictureLogo.BackColor = txtDebugColor.BackColor;
+            panelHwMon.BackColor = txtDebugColor.BackColor;
+            lnkClearLog.BackColor = txtDebugColor.BackColor;
+            lblBattery.BackColor = txtDebugColor.BackColor;
+            lnkAbout.BackColor = txtDebugColor.BackColor;
+            /*btCast.BackColor = txtDebug.BackColor;
+            cmbDeviceList.BackColor = txtDebug.BackColor;
+            btCast.ForeColor = txtDebug.ForeColor;
+            cmbDeviceList.ForeColor = txtDebug.ForeColor;*/
 
-            optWindowsStart.Checked = opts.StartWithWindows;
-            optSystray.Checked = opts.StartMinimized;
-            optAutoSwitchDeck.Checked = opts.MonitorProcess;
-            toolStripMenuItem_AutoSwitch.Checked = opts.MonitorProcess;
-            optAutoCast.Checked = opts.AutoCast;
 
-            timerMonitorProcess.Enabled = optAutoSwitchDeck.Checked;
+            chkWindowsStart.Checked = opts.StartWithWindows;
+            chkStartTray.Checked = opts.StartMinimized;
+            chkMonitorProcess.Checked = opts.MonitorProcess;
+            chkAutoStartCast.Checked = opts.AutoCast;
+            txtOBSPwd.Text = opts.OBSPassword;
+            numOBSPort.Value = opts.OBSPort;
+            chkAlwaysOnTop.Checked = opts.AlwaysOnTop;
+            chkPlaySounds.Checked = opts.PlaySounds;
+            chkEnableBluetoothMonitoring.Checked = opts.EnableBluetoothMonitoring;
+
+            ThresholdCPUMin.Value = opts.ThresholdCPUMin;
+            ThresholdCPUMax.Value = opts.ThresholdCPUMax;
+            ThresholdGPUMin.Value = opts.ThresholdGPUMin;
+            ThresholdGPUMax.Value = opts.ThresholdGPUMax;
+            ThresholdRAMMin.Value = opts.ThresholdRAMMin;
+            ThresholdRAMMax.Value = opts.ThresholdRAMMax;
+            ThresholdNetDownMin.Value = opts.ThresholdNetDownMin;
+            ThresholdNetDownMax.Value = opts.ThresholdNetDownMax;
+            ThresholdNetUpMin.Value = opts.ThresholdNetUpMin;
+            ThresholdNetUpMax.Value = opts.ThresholdNetUpMax;
+            ThresholdPingMin.Value = opts.ThresholdPingMin;
+            ThresholdPingMax.Value = opts.ThresholdPingMax;
+
+            this.TopMost = chkAlwaysOnTop.Checked;
+
+            chkPlaySounds.Checked = opts.PlaySounds;
+            rdAudioFeedback_PlayInPc.Checked = opts.PlayOnPc;
+            rdAudioFeedback_PlayInNH.Checked = !opts.PlayOnPc;
+            this.rdAudioFeedback_PlayInNH.Enabled = chkPlaySounds.Checked;
+            this.rdAudioFeedback_PlayInPc.Enabled = chkPlaySounds.Checked;
+
+            chkShowTrail.Checked = opts.ShowTrail;
 
             setAuthColor();
         }
@@ -628,19 +1002,32 @@ namespace Ares
         }
         private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
+            //this.WindowState = FormWindowState.Minimized;
             this.Show();
             this.WindowState = FormWindowState.Normal;
             this.ShowInTaskbar = true;
+            this.Activate();
+            this.Focus();
         }
-        //public delegate void debugmt(string line);
-        public delegate void debugmt(string line, bool hideTimestamp = false);
-        private void debug(string line, bool hideTimestamp = false)
-        {
-            string timestamp = DateTime.Now.ToString("HH:mm:ss");
 
-            txtDebug.Text += (hideTimestamp ? "" : "[" + timestamp + "] ") + line + Environment.NewLine;
-            txtDebug.SelectionStart = txtDebug.Text.Length;
-            txtDebug.ScrollToCaret();
+        private void debug(string line, bool hideTimestamp = false, bool isError = false, bool verboseOnly = false)
+        {
+            if (verboseOnly && !chkVerbose.Checked) return;
+
+            string timestamp = (line != "" ? "[" + DateTime.Now.ToString("HH:mm:ss") + "] " : "");
+            string newLine = line + Environment.NewLine;
+
+            txtDebugColor.AppendText((hideTimestamp ? "" : timestamp) + newLine);
+
+            txtDebugColor.SelectionStart = txtDebugColor.Text.Length;
+            txtDebugColor.ScrollToCaret();
+
+            txtDebugColor.Select(txtDebugColor.TextLength - newLine.Length, newLine.Length);
+
+            if (isError) txtDebugColor.SelectionColor = Color.Red;
+            else if (verboseOnly) txtDebugColor.SelectionColor = Color.LimeGreen;
+            else txtDebugColor.SelectionColor = Color.White;
+
 
 
         }
@@ -655,18 +1042,31 @@ namespace Ares
 
             if (e.CloseReason == CloseReason.UserClosing)
             {
-                var result = MessageBox.Show("You won't be able to interact with your computer through NestDeck anymore. Are you sure you want to exit?", "Confirm exit", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                var result = MessageBox.Show(
+                    "Do you want to quit NestDeck?" + Environment.NewLine +
+                    "Pressing keys won't have any effect until you launch this app again"
+                    , "NestDeck", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (result == DialogResult.No) e.Cancel = true;
             }
             if (e.Cancel == false && cast_connected) SendData(SSE.Messages.TerminationSignal); //Close any running instances
         }
         private void toolStripMenuItem_Exit_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Are you sure you want to exit NestDeck?", "Confirm Exit", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes) System.Windows.Forms.Application.Exit();
+            var result = MessageBox.Show(
+                    "Do you want to quit NestDeck?" + Environment.NewLine +
+                    "Pressing keys won't have any effect until you launch this app again"
+                    , "NestDeck", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (result == DialogResult.Yes)
+            {
+                if (cast_connected) SendData(SSE.Messages.TerminationSignal); //Close any running instances
+                System.Windows.Forms.Application.Exit();
+            }
+
         }
         private void lstCastDevices_SelectedIndexChanged(object sender, EventArgs e)
         {
-            btCast.Enabled = (lstCastDevices.SelectedItems.Count > 0);
+            btCast.Enabled = cmbDeviceList.SelectedIndex >= 0;
+            //btCast.Enabled = (lstCastDevices.SelectedItems.Count > 0);
         }
         private void btMinimize_Click(object sender, EventArgs e)
         {
@@ -753,10 +1153,15 @@ namespace Ares
             c.Dispose();
         }
 
+        private bool httpError = false;
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            debug("Server stopped.");
-            backgroundWorker1.RunWorkerAsync();
+            if (httpError) { debug("[Error] An error ocurred while starting the HTTP server. Make sure there is no other instance of NestDeck running or port " + numPort.Value + " is not being used by another program.", false, true); }
+            else
+            {
+                debug("Server stopped.");
+                backgroundWorker1.RunWorkerAsync();
+            }
         }
         decimal runningPort = 0;
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
@@ -769,36 +1174,315 @@ namespace Ares
 
 
             backgroundWorker1.ReportProgress(1, "Starting server on port " + numPort.Value + "...");
-            listener.Start();
-            // Handle requests
-            Task listenTask = HandleIncomingConnections(backgroundWorker1, effectiveUrl);
-            listenTask.GetAwaiter().GetResult();
+            try
+            {
+                listener.Start();
+                // Handle requests
+                Task listenTask = HandleIncomingConnections(backgroundWorker1, effectiveUrl);
+                listenTask.GetAwaiter().GetResult();
 
-            // Close the listener
-            listener.Close();
+                // Close the listener
+                listener.Close();
+            }
+            catch (Exception ex)
+            {
+                httpError = true;
+            }
         }
         #endregion
         /********************************************************************************************************/
-        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+
+        private void btOBSWSConnect_Click(object sender, EventArgs e)
         {
+            if (obsIsRunning)
+            {
+                btOBSWSConnect.Enabled = false;
+
+                if (!OBS.WebSocket.IsConnected)
+                {
+                    debug("Connecting to OBS...");
+                    OBS.TryConnect(opts.OBSPort, opts.OBSPassword);
+                }
+                else OBS.WebSocket.Disconnect();
+
+            }
+            else debug("Can't connect. OBS is not running.");
+        }
+
+        HWMonitor hw = new HWMonitor();
+        private void timerMonitorHardware_Tick(object sender, EventArgs e)
+        {
+            hw.ReportSystemInfo();
+
+            lblCPUTemp.Text = hw.cpuTemp.ToString() + "ºC";
+            lblCPUUsage.Text = hw.cpuUsage.ToString("0.00") + "%";
+            lblCPUPower.Text = hw.cpuPowerDrawPackage.ToString("0.00") + "W";
+
+            lblGPUTemp.Text = hw.gpuTemp.ToString() + "ºC";
+            lblGPUUsage.Text = hw.gpuUsage.ToString("0.00") + "%";
+            lblGPUPower.Text = hw.gpuPowerDrawPackage.ToString("0.00") + "W";
+
+            lblMemoryUsed.Text = hw.memoryUsed.ToString("0.00") + "GB";
+            lblMemoryUsage.Text = hw.memoryLoad.ToString("0.00") + "%";
+
+            lblNetDownload.Text = (hw.totalDownloadSpeed).ToString("0.00") + "Mbps ↑ " + (hw.totalUploadSpeed).ToString("0.00") + "Mbps";
+
+
+            //This is read to be sent with pong payload.
+            //Initially it was being ran there, but it increased the ping by a few hundred ms
+            hw.Volume = volumeMixer.GetMainVolumeLevel();
+
+            if (chkEnableBluetoothMonitoring.Checked && bgWorkerRefreshBtDevices.IsBusy == false) bgWorkerRefreshBtDevices.RunWorkerAsync();
 
         }
 
-        private void contextMenuTray_Opening(object sender, CancelEventArgs e)
+        private void checkForUpdatesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
+            debug("Checking for updates...");
+            var version = Updater.CheckVersion();
+            if (version == Updater.GetCurrentVersion()) debug("Your version is up to date");
+            else if (version != Updater.GetCurrentVersion() && version != "") debug("There's a newer version available. Please update");
+            else debug("[Error] There was an error while checking for newer versions", false, true);
         }
 
-        private void toolClearLog_Click(object sender, EventArgs e)
+        private void cmbDevices_SelectedIndexChanged(object sender, EventArgs e)
         {
-            txtDebug.Text = "";
-            /** ProcessFinder pf = new ProcessFinder();
-            pf.ShowDialog();*/
+            btCast.Enabled = cmbDeviceList.SelectedIndex >= 0;
         }
 
-        private void toolRefreshDevices_Click(object sender, EventArgs e)
+        private void chkWindowsStart_CheckedChanged(object sender, EventArgs e)
         {
-            GetCastDevices();
+            if (chkWindowsStart.Checked) Options.AutoStart_Enable();
+            else Options.AutoStart_Disable();
+
+            SaveSettings(sender, e);
+        }
+
+        private void aboutToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+
+            var about = new About();
+            about.ShowDialog();
+        }
+
+        private void Threshold_ValueChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                opts.ThresholdCPUMin = ThresholdCPUMin.Value;
+                opts.ThresholdCPUMax = ThresholdCPUMax.Value;
+                opts.ThresholdGPUMin = ThresholdGPUMin.Value;
+                opts.ThresholdGPUMax = ThresholdGPUMax.Value;
+                opts.ThresholdRAMMin = ThresholdRAMMin.Value;
+                opts.ThresholdRAMMax = ThresholdRAMMax.Value;
+                opts.ThresholdNetDownMin = ThresholdNetDownMin.Value;
+                opts.ThresholdNetDownMax = ThresholdNetDownMax.Value;
+                opts.ThresholdNetUpMin = ThresholdNetUpMin.Value;
+                opts.ThresholdNetUpMax = ThresholdNetUpMax.Value;
+                opts.ThresholdPingMin = ThresholdPingMin.Value;
+                opts.ThresholdPingMax = ThresholdPingMax.Value;
+
+                opts.Save();
+                hw.LoadThresholds(opts);
+            }
+            catch
+            {
+                debug("Error saving settings", false, true);
+            }
+        }
+
+        //Save thresholds - It doesn't really save anything, just sends it to the receiver if connected. And forces the user to blur the numUpDown controls
+        private void button2_Click(object sender, EventArgs e)
+        {
+            debug("Hardware settings saved");
+            if (cast_connected)
+            {
+                SendSystemInfo();
+            }
+        }
+
+        private void sendPong(string argument = "")
+        {
+            if (receiver != null)
+            {
+
+                var hasParsed = double.TryParse(argument, out hw.Ticks);
+                if (!hasParsed)
+                {
+                    hw.Ticks = 0;
+                }
+                hw.Ping = "<pingValue>";
+                //hw.Volume = VolumeMixer.GetMainVolumeLevel(); //Get master audio volume
+
+                string hwInfo = "{}";
+                try
+                {
+                    hw.LoadThresholds(opts);
+                    hwInfo = hw.Serialize();
+                }
+                catch
+                {
+                    //Restart the hardware monitor
+                    hw = new HWMonitor();
+                    hw.LoadThresholds(opts);
+                    hwInfo = hw.Serialize();
+                }
+
+                string json =
+                    "{'Model':'" + receiver.Model +
+                    "','Capabilities':'" + receiver.Capabilities +
+                    "','Version':'" + Updater.GetCurrentVersion() +
+                    "', 'hwInfo': " + hwInfo +
+                    ", 'Options':" + opts.SerializedNetworkOptions() +
+                    ", OBS:" + OBS.Serialize() +
+                    ", MediaInfo: " + mediaPlayer.Serialize() +
+                    ", BatteryInfo: " + Bluetooth.BtDevice.SerializeList(opts.BluetoothDevices, btDevices) + " }";
+                SendData(SSE.Messages.Pong + json);
+            }
+        }
+        private void SendSystemInfo()
+        {
+            if (receiver != null && cast_connected)
+            {
+                string hwInfo = "{}";
+                try
+                {
+                    hw.LoadThresholds(opts);
+                    hwInfo = hw.Serialize();
+                }
+                catch
+                {
+                    //Restart the hardware monitor
+                    hw = new HWMonitor();
+                    hw.LoadThresholds(opts);
+                    hwInfo = hw.Serialize();
+                }
+                string json = "{'hwInfo': " + hwInfo +
+                    ", 'Options':" + opts.SerializedNetworkOptions() +
+                    ", 'Version':'" + Updater.GetCurrentVersion() + "'" +
+                    ", OBS:" + OBS.Serialize() +
+                    ", MediaInfo: " + mediaPlayer.Serialize() +
+                    ", BatteryInfo: " + Bluetooth.BtDevice.SerializeList(opts.BluetoothDevices, btDevices) +
+                    " }";
+
+                SendData(SSE.MessageEnvelope.Build(SSE.Messages.SystemInfo, json));
+            }
+        }
+
+        private string lastDeviceSignature = "";
+        private void bgWorkerRefreshBtDevices_DoWork(object sender, DoWorkEventArgs e)
+        {
+            var btData = hw.GetAllDevices();
+
+            if (btData.Error != null && btData.Error != string.Empty) LogMessage("[Error] Bluetooth device retrieval: " + btData.Error, true);
+            else
+            {
+                //Only refresh if data has changed
+                if (btData.Signature != lastDeviceSignature)
+                {
+                    lastDeviceSignature = btData.Signature;
+                    btDevices = btData.DeviceList;
+                    bgWorkerRefreshBtDevices.ReportProgress(100);
+                }
+            }
+        }
+
+        private void bgWorkerRefreshBtDevices_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+
+            gridBluetooth.Rows.Clear();
+            foreach (var btDevice in btDevices)
+            {
+                var currentOption = opts.BluetoothDevices.Find(x => x.Name.Equals(btDevice.Name));
+                if (currentOption != null)
+                {
+                    btDevice.IsSelected = currentOption.IsSelected;
+                    btDevice.Type = currentOption.Type;
+                }
+                if (btDevice.Type == "") btDevice.Type = "None";
+                gridBluetooth.Rows.Add(new object[] { btDevice.IsSelected, btDevice.Name, btDevice.Charge, btDevice.Type });
+            }
+            RenderBatteryInfo();
+        }
+
+        private void RenderBatteryInfo()
+        {
+            string boltSign = "⚡";
+            string btInfo = boltSign;
+            foreach (var btDevice in btDevices)
+            {
+                if (btDevice.IsSelected)
+                {
+                    btInfo += " " + Bluetooth.BtDevice.GetTypeIcon(btDevice.Type) + " " + btDevice.Charge + "% " + btDevice.Name;
+                }
+            }
+
+            lblBattery.Text = btInfo;
+            if (btInfo == boltSign) lblBattery.Visible = false;
+            else lblBattery.Visible = true;
+        }
+        private void gridBluetooth_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            //Save options with grid changes
+            if (e.RowIndex >= 0)
+            {
+                var changedRow = gridBluetooth.Rows[e.RowIndex];
+                var deviceName = (string)changedRow.Cells[1].Value;
+
+                var optsSetting = opts.BluetoothDevices.Find(x => x.Name.Equals(deviceName));
+                var btDevice = btDevices.Find(x => x.Name.Equals(deviceName));
+
+
+                //Settings exist?   
+                if (optsSetting != null)
+                {
+                    //Change existing
+                    optsSetting.IsSelected = (bool)changedRow.Cells[0].Value;
+                    optsSetting.Type = (string)changedRow.Cells[3].Value;
+
+
+                }
+                else
+                {
+                    //Add new
+                    optsSetting = new BtDevice(deviceName, 0, false); //Find in device list
+                    optsSetting.IsSelected = (bool)changedRow.Cells[0].Value;
+                    optsSetting.Type = (string)changedRow.Cells[3].Value;
+
+                    opts.BluetoothDevices.Add(optsSetting);
+                }
+
+
+                if (btDevice != null)
+                {
+                    var idx = btDevices.IndexOf(btDevice);
+                    btDevices[idx].IsSelected = optsSetting.IsSelected;
+                    btDevices[idx].Type = optsSetting.Type;
+                }
+
+                RenderBatteryInfo();
+                opts.Save();
+            }
+        }
+
+        private void chkVerbose_CheckedChanged(object sender, EventArgs e)
+        {
+            debug("Verbose: " + (chkVerbose.Checked ? "ON" : "OFF"));
+        }
+
+        private void pictureLogo_Click(object sender, EventArgs e)
+        {
+            //Just to test some random stuff
+            string keys = @"[
+    {'ActionType':'SendKeystroke','Data':'27','ExtraData':'17,16'},  // Open Task Manager (Ctrl + Shift + Escape)
+    {'ActionType':'Wait','Data':'500','ExtraData':''},               // Wait for Task Manager to open
+    {'ActionType':'SendKeystroke','Data':'9','ExtraData':''},        // Press Tab to navigate to the tabs
+    {'ActionType':'SendKeystroke','Data':'9','ExtraData':''},        // Press Tab to reach the ""Details"" tab
+    {'ActionType':'SendKeystroke','Data':'13','ExtraData':''}        // Press Enter to select the ""Details"" tab
+]
+";
+            List<Action> actions = JsonConvert.DeserializeObject<List<Action>>(keys);
+            foreach (Action action in actions) { handleAction(action); }
         }
     }
 }

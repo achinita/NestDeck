@@ -1,0 +1,99 @@
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\Nest Deck.exe
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\holygrenade.mp3
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\Resources\server.htm
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\Nest Deck.deps.json
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\Nest Deck.runtimeconfig.json
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\Nest Deck.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\Nest Deck.pdb
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\AudioSwitcher.AudioApi.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\AudioSwitcher.AudioApi.CoreAudio.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\EventSource4Net.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\HidSharp.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\WindowsInput.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\LibreHardwareMonitorLib.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\Microsoft.Extensions.DependencyInjection.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\Gma.System.MouseKeyHook.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\NAudio.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\NAudio.Asio.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\NAudio.Core.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\NAudio.Midi.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\NAudio.Wasapi.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\NAudio.WinForms.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\NAudio.WinMM.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\Newtonsoft.Json.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\obs-websocket-dotnet.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\protobuf-net.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\protobuf-net.Core.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\slf4net.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\System.CodeDom.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\System.Diagnostics.EventLog.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\System.IO.Ports.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\System.Management.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\Microsoft.Win32.TaskScheduler.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\Websocket.Client.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\websocket-sharp.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\Zeroconf.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\de\Microsoft.Win32.TaskScheduler.resources.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\es\Microsoft.Win32.TaskScheduler.resources.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\fr\Microsoft.Win32.TaskScheduler.resources.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\it\Microsoft.Win32.TaskScheduler.resources.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\ja\Microsoft.Win32.TaskScheduler.resources.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\pl\Microsoft.Win32.TaskScheduler.resources.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\ru\Microsoft.Win32.TaskScheduler.resources.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\sv\Microsoft.Win32.TaskScheduler.resources.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\tr\Microsoft.Win32.TaskScheduler.resources.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\zh-CN\Microsoft.Win32.TaskScheduler.resources.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\zh-Hant\Microsoft.Win32.TaskScheduler.resources.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\linux-arm\lib\netstandard2.0\Mono.Posix.NETStandard.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\linux-arm\native\libMonoPosixHelper.so
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\linux-arm64\lib\netstandard2.0\Mono.Posix.NETStandard.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\linux-arm64\native\libMonoPosixHelper.so
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\linux-armel\lib\netstandard2.0\Mono.Posix.NETStandard.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\linux-armel\native\libMonoPosixHelper.so
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\linux-x64\lib\netstandard2.0\Mono.Posix.NETStandard.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\linux-x64\native\libMonoPosixHelper.so
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\linux-x86\lib\netstandard2.0\Mono.Posix.NETStandard.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\linux-x86\native\libMonoPosixHelper.so
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\osx\lib\netstandard2.0\Mono.Posix.NETStandard.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\osx\native\libMonoPosixHelper.dylib
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\win-x64\lib\netstandard2.0\Mono.Posix.NETStandard.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\win-x64\native\MonoPosixHelper.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\win-x64\native\libMonoPosixHelper.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\win-x86\lib\netstandard2.0\Mono.Posix.NETStandard.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\win-x86\native\MonoPosixHelper.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\win-x86\native\libMonoPosixHelper.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\linux-arm\native\libSystem.IO.Ports.Native.so
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\linux-arm64\native\libSystem.IO.Ports.Native.so
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\linux-x64\native\libSystem.IO.Ports.Native.so
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\osx-arm64\native\libSystem.IO.Ports.Native.dylib
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\osx-x64\native\libSystem.IO.Ports.Native.dylib
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\win\lib\net7.0\System.Diagnostics.EventLog.Messages.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\win\lib\net7.0\System.Diagnostics.EventLog.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\unix\lib\net7.0\System.IO.Ports.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\win\lib\net7.0\System.IO.Ports.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\runtimes\win\lib\net7.0\System.Management.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\Microsoft.Windows.SDK.NET.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\WinRT.Runtime.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\GoogleCast.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\System.Reactive.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\GoogleCast.pdb
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Release\net7.0-windows10.0.17763.0\System.Reactive.xml
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Release\net7.0-windows10.0.17763.0\Nest Deck.csproj.AssemblyReference.cache
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Release\net7.0-windows10.0.17763.0\Nest_Deck.About.resources
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Release\net7.0-windows10.0.17763.0\Nest_Deck.KeyCap.resources
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Release\net7.0-windows10.0.17763.0\SHARK_Deck.ProcessFinder.resources
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Release\net7.0-windows10.0.17763.0\Nest_Deck.Properties.Resources.resources
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Release\net7.0-windows10.0.17763.0\Ares.SHARK.resources
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Release\net7.0-windows10.0.17763.0\Nest_Deck.Updater.resources
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Release\net7.0-windows10.0.17763.0\Nest Deck.csproj.GenerateResource.cache
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Release\net7.0-windows10.0.17763.0\Nest Deck.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Release\net7.0-windows10.0.17763.0\Nest Deck.AssemblyInfoInputs.cache
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Release\net7.0-windows10.0.17763.0\Nest Deck.AssemblyInfo.cs
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Release\net7.0-windows10.0.17763.0\Nest Deck.csproj.CoreCompileInputs.cache
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Release\net7.0-windows10.0.17763.0\Nest Deck.csproj.CopyComplete
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Release\net7.0-windows10.0.17763.0\Nest Deck.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Release\net7.0-windows10.0.17763.0\refint\Nest Deck.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Release\net7.0-windows10.0.17763.0\Nest Deck.pdb
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Release\net7.0-windows10.0.17763.0\Nest Deck.genruntimeconfig.cache
+C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Release\net7.0-windows10.0.17763.0\ref\Nest Deck.dll
