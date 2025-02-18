@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
-
-using EventSource4Net;
+﻿using EventSource4Net;
 using Newtonsoft.Json;
 
 namespace SHARK_Deck
@@ -18,8 +11,8 @@ namespace SHARK_Deck
             public string type = "";
             [JsonProperty]
             public string data = "";
-            public MessageEnvelope(string MessageType, string MessageData) 
-            {  
+            public MessageEnvelope(string MessageType, string MessageData)
+            {
                 type = MessageType;
                 data = MessageData;
             }
@@ -38,7 +31,7 @@ namespace SHARK_Deck
                 try
                 {
                     return JsonConvert.DeserializeObject<MessageEnvelope>(json);
-                } 
+                }
                 catch
                 {
                     return null;
@@ -63,27 +56,48 @@ namespace SHARK_Deck
                 Key = k;
             }
 
-            public string Serialize() {  return JsonConvert.SerializeObject(this); }
+            public string Serialize() { return JsonConvert.SerializeObject(this); }
         }
         public static class Messages
         {
-            public const string TerminationSignal = "termSignal"; //Sends a signal to the Chromecast application to close itself
-            public const string ConnectionSuccess = "ConnectionOK"; //Received when Chromecast Application connects to SSE channel
+            //v3 - Event received from chromecast
+            public const string Evt_AuthenticationRequest = "RequestAuthentication"; //Received from the chromecast application, indicates it's ready to receive the user account paired with the windows client
+            public const string Evt_ConnectionSuccess = "ConnectionOK"; //Received when Chromecast Application loads for the first time
+            public const string Evt_Ping = "ping"; //Ping
+            public const string Evt_RequestAudioData = "RequestAudioData"; //Hub requested audio info
+            public const string Evt_SetVolume = "setVolume"; //Set volume of process/source
+            public const string Evt_ButtonPress = "ButtonPress"; //A button was pressed on a deck
+            public const string Evt_KeepAlive = "keepalive";
+            public const string Evt_ForceRefresh = "refreshDecks";
+
+            //v3 - Events to send to chromecast
+            public const string Msg_SendAuthentication = "AuthString"; //Send authentication string to the client
+            public const string Msg_Pong = "pong"; //Ping? Pong!
+            public const string Msg_HardwareValues = "hwValues"; //Hardware monitoring values
+            public const string Msg_AudioData = "AudioData";
+            public const string Msg_OBSStatus = "OBSStatus"; //Send to nest hub with information on the obs status
+            public const string Msg_TerminationSignal = "termSignal"; //Sends a signal to the Chromecast application to close itself
+            public const string Msg_ForceRefresh = "forceRefresh"; //Tells the receiver to refresh the decks
+            public const string Msg_ProcessChanged = "procChange";
+
+            //v3 - Events received from web editor
+            public const string Evt_TestAction = "testCommand";
+
+            //v2 - Older
+
+
             public const string Timeout = "timeout"; //Client application timed out waiting for a response from the Windows client
             public const string Ping = "connectionPing"; //Message sent by the chromecast application to check for connection status
             public const string Pong = "checkConnection"; //Response sent to a Ping message. If this fails to arrive, the chromecast application will exit
-            public const string AuthenticationRequest = "RequestAuthentication"; //Received from the chromecast application, indicates it's ready to receive the user account paired with the windows client
             public const string ButtonTap = "[tapDeckButton]"; //A button has been tapped on the nest hub
             public const string OBSData = "obsData"; //Sent to Deck Editor with OBS Info (Scenes, Sources, etc)
             public const string EditorRespondSync = "synchOkAuth"; //Sent to the editor to confirm pairing
             public const string OpenKeyDetection = "detectkeys";
             public const string KeysDetected = "[keydetected]";
             public const string ForceRefresh = "forceRefresh"; //Force a refresh command received from the editor
-            public const string ForceRefresh_Evt = "evt_forceRefresh";
-            public const string OBSStatus = "OBSStatus"; //Send to nest hub with information on the obs status
-            public const string TestAction = "testCommand";
+
             public const string SystemInfo = "sysInfo";
-            public const string ProcessChanged = "procChange";
+            
         }
 
         public static class Actions
@@ -93,8 +107,8 @@ namespace SHARK_Deck
             public const string FindAudio = "lookForAudioFile"; //Opens a dialog to look for an audio file
         }
         private const string serviceUrl = "https://achinita.outsystemscloud.com/SHARK_IS/rest/SSE/Subscribe?Channel=";
-        public SSE() 
-        { 
+        public SSE()
+        {
         }
         EventSource es = null;
         public async Task Connect(string DeviceId)
@@ -104,7 +118,7 @@ namespace SHARK_Deck
                 es.EventReceived -= Es_EventReceived;
                 es.StateChanged -= Es_StateChanged;
             }
-            es = new EventSource(new Uri(serviceUrl + DeviceId),60);
+            es = new EventSource(new Uri(serviceUrl + DeviceId), 60);
             es.EventReceived += Es_EventReceived;
             es.StateChanged += Es_StateChanged;
             es.Start(CancellationToken.None);
@@ -115,7 +129,7 @@ namespace SHARK_Deck
         {
             SSEConnectionStatus eventArgs = new SSEConnectionStatus();
             eventArgs.Status = e.State;
-            
+
             StatusChangeHandler ev = this.OnStatusChange;
             if (ev != null)
             {
@@ -142,9 +156,9 @@ namespace SHARK_Deck
         {
             throw new NotImplementedException();
         }
-        public void Disconnect() 
+        public void Disconnect()
         {
-         
+
         }
         public delegate void ReturnIntHandler(object sender, SSEArguments eventArgs);
         public event ReturnIntHandler OnMessage;

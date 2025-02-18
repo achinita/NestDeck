@@ -1,28 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using LibreHardwareMonitor.Hardware;
+﻿using LibreHardwareMonitor.Hardware;
 using Newtonsoft.Json;
 using SHARK_Deck;
-
-using Windows.Devices.Bluetooth;
-using Windows.Devices.Enumeration;
-using Windows.Devices.Power;
-using Windows.Devices.Bluetooth.GenericAttributeProfile;
-using Windows.Storage.Streams;
-using Windows.Devices.Bluetooth.Rfcomm;
-using Windows.Networking.Sockets;
-using Windows.Security.Cryptography;
-using System.Reflection.PortableExecutable;
-using System.Windows.Forms.Design;
-using ProtoBuf.Meta;
-
-using System.Management;
-using Windows.System;
 using System.Net.NetworkInformation;
 
 namespace Nest_Deck

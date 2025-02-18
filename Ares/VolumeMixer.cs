@@ -1,14 +1,6 @@
-﻿using NAudio.CoreAudioApi;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using AudioSwitcher.AudioApi.CoreAudio;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Media.Imaging;
-using AudioSwitcher.AudioApi.CoreAudio;
 
 namespace SHARK_Deck
 {
@@ -17,7 +9,8 @@ namespace SHARK_Deck
         AudioProcess mainVolume = new AudioProcess();
         CoreAudioDevice defaultPlaybackDevice = new CoreAudioController().DefaultPlaybackDevice;
 
-        public VolumeMixer() {        
+        public VolumeMixer()
+        {
         }
         public void setGeneralVolume(int lvl)
         {
@@ -51,11 +44,11 @@ namespace SHARK_Deck
 
             mainVolume.Volume = (int)defaultPlaybackDevice.Volume;
             mainVolume.Name = defaultPlaybackDevice.Name;
-            _out.Insert(0,mainVolume);
+            _out.Insert(0, mainVolume);
             return _out;
         }
 
-        public int GetMainVolumeLevel ()
+        public int GetMainVolumeLevel()
         {
             var devChanged = defaultPlaybackDevice.DefaultChanged;
             return (int)(defaultPlaybackDevice.Volume);
@@ -146,7 +139,7 @@ namespace SHARK_Deck
         private static ISimpleAudioVolume GetVolumeObject(int pid)
         {
             // get the speakers (1st render + multimedia) device
-            IMMDeviceEnumerator deviceEnumerator = MMDeviceEnumeratorFactory.CreateInstance(); 
+            IMMDeviceEnumerator deviceEnumerator = MMDeviceEnumeratorFactory.CreateInstance();
             IMMDevice speakers;
             deviceEnumerator.GetDefaultAudioEndpoint(EDataFlow.eRender, ERole.eMultimedia, out speakers);
 

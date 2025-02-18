@@ -7,6 +7,9 @@
     <Compile Update="About.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="ChromeCast\ChromecastMessaging.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="KeyCap.cs">
       <SubType>Form</SubType>
     </Compile>

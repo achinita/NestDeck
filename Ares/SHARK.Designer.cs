@@ -51,17 +51,21 @@
             btUpdate = new Button();
             btReset = new Button();
             groupBox2 = new GroupBox();
+            chkMinimizeToTray = new CheckBox();
             chkAutoStartCast = new CheckBox();
             chkWindowsStart = new CheckBox();
             chkStartTray = new CheckBox();
             chkAlwaysOnTop = new CheckBox();
             groupBox3 = new GroupBox();
+            chkShowVPNIndicator = new CheckBox();
             chkShowTrail = new CheckBox();
             chkMonitorProcess = new CheckBox();
             rdAudioFeedback_PlayInNH = new RadioButton();
             chkPlaySounds = new CheckBox();
             rdAudioFeedback_PlayInPc = new RadioButton();
             tabPage2 = new TabPage();
+            lblOBSMicStatus = new Label();
+            label41 = new Label();
             label9 = new Label();
             label8 = new Label();
             label7 = new Label();
@@ -76,6 +80,9 @@
             numOBSPort = new NumericUpDown();
             label2 = new Label();
             tabPage3 = new TabPage();
+            lblRefreshRate = new Label();
+            trackBar_hwRefreshRate = new TrackBar();
+            label38 = new Label();
             groupBox1 = new GroupBox();
             button2 = new Button();
             label35 = new Label();
@@ -165,6 +172,7 @@
             tabPage2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numOBSPort).BeginInit();
             tabPage3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)trackBar_hwRefreshRate).BeginInit();
             panel6.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)ThresholdPingMax).BeginInit();
             panel5.SuspendLayout();
@@ -275,7 +283,7 @@
             pbBackground.BackColor = Color.Black;
             pbBackground.Location = new Point(560, -3);
             pbBackground.Name = "pbBackground";
-            pbBackground.Size = new Size(570, 525);
+            pbBackground.Size = new Size(570, 544);
             pbBackground.TabIndex = 24;
             pbBackground.TabStop = false;
             // 
@@ -283,7 +291,7 @@
             // 
             statusStrip1.ImageScalingSize = new Size(20, 20);
             statusStrip1.Items.AddRange(new ToolStripItem[] { statusAuth, statusData, statusCast });
-            statusStrip1.Location = new Point(0, 492);
+            statusStrip1.Location = new Point(0, 511);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Size = new Size(1130, 30);
             statusStrip1.TabIndex = 25;
@@ -340,7 +348,7 @@
             tabControl1.Location = new Point(12, 100);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(542, 390);
+            tabControl1.Size = new Size(542, 403);
             tabControl1.TabIndex = 29;
             // 
             // tabPage1
@@ -351,7 +359,7 @@
             tabPage1.Controls.Add(groupBox3);
             tabPage1.Location = new Point(4, 32);
             tabPage1.Name = "tabPage1";
-            tabPage1.Size = new Size(534, 354);
+            tabPage1.Size = new Size(534, 367);
             tabPage1.TabIndex = 2;
             tabPage1.Text = "🔧 Nest Deck";
             tabPage1.UseVisualStyleBackColor = true;
@@ -378,6 +386,7 @@
             // 
             // groupBox2
             // 
+            groupBox2.Controls.Add(chkMinimizeToTray);
             groupBox2.Controls.Add(chkAutoStartCast);
             groupBox2.Controls.Add(chkWindowsStart);
             groupBox2.Controls.Add(chkStartTray);
@@ -388,6 +397,17 @@
             groupBox2.TabIndex = 13;
             groupBox2.TabStop = false;
             groupBox2.Text = "Windows client settings";
+            // 
+            // chkMinimizeToTray
+            // 
+            chkMinimizeToTray.AutoSize = true;
+            chkMinimizeToTray.Location = new Point(159, 86);
+            chkMinimizeToTray.Name = "chkMinimizeToTray";
+            chkMinimizeToTray.Size = new Size(188, 24);
+            chkMinimizeToTray.TabIndex = 9;
+            chkMinimizeToTray.Text = "Minimize to system tray";
+            chkMinimizeToTray.UseVisualStyleBackColor = true;
+            chkMinimizeToTray.CheckedChanged += SaveSettings;
             // 
             // chkAutoStartCast
             // 
@@ -416,9 +436,9 @@
             chkStartTray.AutoSize = true;
             chkStartTray.Location = new Point(17, 86);
             chkStartTray.Name = "chkStartTray";
-            chkStartTray.Size = new Size(311, 24);
+            chkStartTray.Size = new Size(136, 24);
             chkStartTray.TabIndex = 2;
-            chkStartTray.Text = "Start Nest Deck in system tray (minimized)";
+            chkStartTray.Text = "Start minimized";
             chkStartTray.UseVisualStyleBackColor = true;
             chkStartTray.CheckedChanged += SaveSettings;
             // 
@@ -435,6 +455,7 @@
             // 
             // groupBox3
             // 
+            groupBox3.Controls.Add(chkShowVPNIndicator);
             groupBox3.Controls.Add(chkShowTrail);
             groupBox3.Controls.Add(chkMonitorProcess);
             groupBox3.Controls.Add(rdAudioFeedback_PlayInNH);
@@ -442,10 +463,21 @@
             groupBox3.Controls.Add(rdAudioFeedback_PlayInPc);
             groupBox3.Location = new Point(3, 214);
             groupBox3.Name = "groupBox3";
-            groupBox3.Size = new Size(512, 124);
+            groupBox3.Size = new Size(512, 150);
             groupBox3.TabIndex = 14;
             groupBox3.TabStop = false;
             groupBox3.Text = "Nest Hub settings";
+            // 
+            // chkShowVPNIndicator
+            // 
+            chkShowVPNIndicator.AutoSize = true;
+            chkShowVPNIndicator.Location = new Point(17, 117);
+            chkShowVPNIndicator.Name = "chkShowVPNIndicator";
+            chkShowVPNIndicator.Size = new Size(199, 24);
+            chkShowVPNIndicator.TabIndex = 13;
+            chkShowVPNIndicator.Text = "VPN connection indicator";
+            chkShowVPNIndicator.UseVisualStyleBackColor = true;
+            chkShowVPNIndicator.CheckedChanged += SaveSettingsAndUpdateHub;
             // 
             // chkShowTrail
             // 
@@ -506,6 +538,8 @@
             // 
             // tabPage2
             // 
+            tabPage2.Controls.Add(lblOBSMicStatus);
+            tabPage2.Controls.Add(label41);
             tabPage2.Controls.Add(label9);
             tabPage2.Controls.Add(label8);
             tabPage2.Controls.Add(label7);
@@ -522,15 +556,33 @@
             tabPage2.Location = new Point(4, 32);
             tabPage2.Name = "tabPage2";
             tabPage2.Padding = new Padding(3);
-            tabPage2.Size = new Size(534, 354);
+            tabPage2.Size = new Size(534, 367);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "📽️ OBS";
             tabPage2.UseVisualStyleBackColor = true;
             // 
+            // lblOBSMicStatus
+            // 
+            lblOBSMicStatus.AutoSize = true;
+            lblOBSMicStatus.Location = new Point(126, 206);
+            lblOBSMicStatus.Name = "lblOBSMicStatus";
+            lblOBSMicStatus.Size = new Size(15, 20);
+            lblOBSMicStatus.TabIndex = 17;
+            lblOBSMicStatus.Text = "-";
+            // 
+            // label41
+            // 
+            label41.AutoSize = true;
+            label41.Location = new Point(13, 206);
+            label41.Name = "label41";
+            label41.Size = new Size(77, 20);
+            label41.TabIndex = 15;
+            label41.Text = "Mic Status";
+            // 
             // label9
             // 
             label9.AutoSize = true;
-            label9.Location = new Point(12, 161);
+            label9.Location = new Point(12, 135);
             label9.Name = "label9";
             label9.Size = new Size(410, 20);
             label9.TabIndex = 12;
@@ -539,7 +591,7 @@
             // label8
             // 
             label8.AutoSize = true;
-            label8.Location = new Point(12, 141);
+            label8.Location = new Point(12, 115);
             label8.Name = "label8";
             label8.Size = new Size(220, 20);
             label8.TabIndex = 11;
@@ -548,7 +600,7 @@
             // label7
             // 
             label7.AutoSize = true;
-            label7.Location = new Point(12, 121);
+            label7.Location = new Point(12, 95);
             label7.Name = "label7";
             label7.Size = new Size(328, 20);
             label7.TabIndex = 10;
@@ -556,7 +608,7 @@
             // 
             // btOBSWSConnect
             // 
-            btOBSWSConnect.Location = new Point(12, 88);
+            btOBSWSConnect.Location = new Point(12, 62);
             btOBSWSConnect.Name = "btOBSWSConnect";
             btOBSWSConnect.Size = new Size(478, 29);
             btOBSWSConnect.TabIndex = 9;
@@ -567,7 +619,7 @@
             // lblOBSWSStatus
             // 
             lblOBSWSStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            lblOBSWSStatus.Location = new Point(381, 9);
+            lblOBSWSStatus.Location = new Point(381, 173);
             lblOBSWSStatus.Name = "lblOBSWSStatus";
             lblOBSWSStatus.Size = new Size(142, 20);
             lblOBSWSStatus.TabIndex = 8;
@@ -577,7 +629,7 @@
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(234, 9);
+            label6.Location = new Point(247, 173);
             label6.Name = "label6";
             label6.Size = new Size(125, 20);
             label6.TabIndex = 7;
@@ -587,7 +639,7 @@
             // 
             label5.AutoSize = true;
             label5.Font = new Font("Segoe UI", 6F, FontStyle.Regular, GraphicsUnit.Point);
-            label5.Location = new Point(310, 69);
+            label5.Location = new Point(310, 43);
             label5.Name = "label5";
             label5.Size = new Size(180, 12);
             label5.TabIndex = 6;
@@ -595,7 +647,7 @@
             // 
             // txtOBSPwd
             // 
-            txtOBSPwd.Location = new Point(310, 39);
+            txtOBSPwd.Location = new Point(310, 13);
             txtOBSPwd.Name = "txtOBSPwd";
             txtOBSPwd.PasswordChar = '•';
             txtOBSPwd.Size = new Size(179, 27);
@@ -605,7 +657,7 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(234, 42);
+            label4.Location = new Point(234, 16);
             label4.Name = "label4";
             label4.Size = new Size(70, 20);
             label4.TabIndex = 4;
@@ -614,7 +666,7 @@
             // lblOBSStatus
             // 
             lblOBSStatus.AutoSize = true;
-            lblOBSStatus.Location = new Point(126, 9);
+            lblOBSStatus.Location = new Point(126, 173);
             lblOBSStatus.Name = "lblOBSStatus";
             lblOBSStatus.Size = new Size(92, 20);
             lblOBSStatus.TabIndex = 3;
@@ -623,7 +675,7 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(11, 9);
+            label3.Location = new Point(11, 173);
             label3.Name = "label3";
             label3.Size = new Size(79, 20);
             label3.TabIndex = 2;
@@ -631,7 +683,7 @@
             // 
             // numOBSPort
             // 
-            numOBSPort.Location = new Point(130, 40);
+            numOBSPort.Location = new Point(130, 14);
             numOBSPort.Maximum = new decimal(new int[] { 99999, 0, 0, 0 });
             numOBSPort.Name = "numOBSPort";
             numOBSPort.Size = new Size(76, 27);
@@ -642,7 +694,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(11, 42);
+            label2.Location = new Point(11, 16);
             label2.Name = "label2";
             label2.Size = new Size(113, 20);
             label2.TabIndex = 0;
@@ -650,6 +702,9 @@
             // 
             // tabPage3
             // 
+            tabPage3.Controls.Add(lblRefreshRate);
+            tabPage3.Controls.Add(trackBar_hwRefreshRate);
+            tabPage3.Controls.Add(label38);
             tabPage3.Controls.Add(groupBox1);
             tabPage3.Controls.Add(button2);
             tabPage3.Controls.Add(label35);
@@ -685,14 +740,43 @@
             tabPage3.Controls.Add(ThresholdNetDownMin);
             tabPage3.Location = new Point(4, 32);
             tabPage3.Name = "tabPage3";
-            tabPage3.Size = new Size(534, 354);
+            tabPage3.Size = new Size(534, 367);
             tabPage3.TabIndex = 3;
             tabPage3.Text = "📉 Hardware monitor";
             tabPage3.UseVisualStyleBackColor = true;
             // 
+            // lblRefreshRate
+            // 
+            lblRefreshRate.AutoSize = true;
+            lblRefreshRate.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            lblRefreshRate.Location = new Point(108, 16);
+            lblRefreshRate.Name = "lblRefreshRate";
+            lblRefreshRate.Size = new Size(71, 20);
+            lblRefreshRate.TabIndex = 46;
+            lblRefreshRate.Text = "1 second";
+            // 
+            // trackBar_hwRefreshRate
+            // 
+            trackBar_hwRefreshRate.Location = new Point(11, 39);
+            trackBar_hwRefreshRate.Minimum = 1;
+            trackBar_hwRefreshRate.Name = "trackBar_hwRefreshRate";
+            trackBar_hwRefreshRate.Size = new Size(509, 56);
+            trackBar_hwRefreshRate.TabIndex = 45;
+            trackBar_hwRefreshRate.Value = 1;
+            trackBar_hwRefreshRate.Scroll += trackBar_hwRefreshRate_Scroll;
+            // 
+            // label38
+            // 
+            label38.AutoSize = true;
+            label38.Location = new Point(11, 16);
+            label38.Name = "label38";
+            label38.Size = new Size(91, 20);
+            label38.TabIndex = 44;
+            label38.Text = "Refresh rate:";
+            // 
             // groupBox1
             // 
-            groupBox1.Location = new Point(254, 36);
+            groupBox1.Location = new Point(255, 123);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new Size(1, 154);
             groupBox1.TabIndex = 43;
@@ -700,7 +784,7 @@
             // 
             // button2
             // 
-            button2.Location = new Point(394, 206);
+            button2.Location = new Point(395, 306);
             button2.Name = "button2";
             button2.Size = new Size(125, 29);
             button2.TabIndex = 42;
@@ -711,7 +795,7 @@
             // label35
             // 
             label35.AutoSize = true;
-            label35.Location = new Point(12, 8);
+            label35.Location = new Point(13, 95);
             label35.Name = "label35";
             label35.Size = new Size(374, 20);
             label35.TabIndex = 41;
@@ -722,7 +806,7 @@
             panel6.BackColor = Color.Green;
             panel6.BorderStyle = BorderStyle.FixedSingle;
             panel6.Controls.Add(label33);
-            panel6.Location = new Point(297, 163);
+            panel6.Location = new Point(298, 250);
             panel6.Name = "panel6";
             panel6.Size = new Size(64, 27);
             panel6.TabIndex = 37;
@@ -741,7 +825,7 @@
             // 
             ThresholdPingMax.BackColor = Color.Firebrick;
             ThresholdPingMax.ForeColor = Color.White;
-            ThresholdPingMax.Location = new Point(430, 163);
+            ThresholdPingMax.Location = new Point(431, 250);
             ThresholdPingMax.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
             ThresholdPingMax.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             ThresholdPingMax.Name = "ThresholdPingMax";
@@ -754,7 +838,7 @@
             // 
             label32.AutoSize = true;
             label32.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
-            label32.Location = new Point(293, 140);
+            label32.Location = new Point(294, 227);
             label32.Name = "label32";
             label32.Size = new Size(138, 20);
             label32.TabIndex = 35;
@@ -763,7 +847,7 @@
             // label34
             // 
             label34.AutoSize = true;
-            label34.Location = new Point(498, 165);
+            label34.Location = new Point(499, 252);
             label34.Name = "label34";
             label34.Size = new Size(21, 20);
             label34.TabIndex = 39;
@@ -774,7 +858,7 @@
             panel5.BackColor = Color.Green;
             panel5.BorderStyle = BorderStyle.FixedSingle;
             panel5.Controls.Add(label30);
-            panel5.Location = new Point(297, 112);
+            panel5.Location = new Point(298, 199);
             panel5.Name = "panel5";
             panel5.Size = new Size(64, 27);
             panel5.TabIndex = 31;
@@ -793,7 +877,7 @@
             // 
             ThresholdNetUpMax.BackColor = Color.Firebrick;
             ThresholdNetUpMax.ForeColor = Color.White;
-            ThresholdNetUpMax.Location = new Point(430, 112);
+            ThresholdNetUpMax.Location = new Point(431, 199);
             ThresholdNetUpMax.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
             ThresholdNetUpMax.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             ThresholdNetUpMax.Name = "ThresholdNetUpMax";
@@ -806,7 +890,7 @@
             // 
             label29.AutoSize = true;
             label29.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
-            label29.Location = new Point(293, 89);
+            label29.Location = new Point(294, 176);
             label29.Name = "label29";
             label29.Size = new Size(114, 20);
             label29.TabIndex = 29;
@@ -815,7 +899,7 @@
             // label31
             // 
             label31.AutoSize = true;
-            label31.Location = new Point(498, 114);
+            label31.Location = new Point(499, 201);
             label31.Name = "label31";
             label31.Size = new Size(21, 20);
             label31.TabIndex = 33;
@@ -826,7 +910,7 @@
             panel4.BackColor = Color.Green;
             panel4.BorderStyle = BorderStyle.FixedSingle;
             panel4.Controls.Add(label27);
-            panel4.Location = new Point(297, 59);
+            panel4.Location = new Point(298, 146);
             panel4.Name = "panel4";
             panel4.Size = new Size(64, 27);
             panel4.TabIndex = 25;
@@ -845,7 +929,7 @@
             // 
             ThresholdNetDownMax.BackColor = Color.Firebrick;
             ThresholdNetDownMax.ForeColor = Color.White;
-            ThresholdNetDownMax.Location = new Point(430, 59);
+            ThresholdNetDownMax.Location = new Point(431, 146);
             ThresholdNetDownMax.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
             ThresholdNetDownMax.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             ThresholdNetDownMax.Name = "ThresholdNetDownMax";
@@ -858,7 +942,7 @@
             // 
             label26.AutoSize = true;
             label26.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
-            label26.Location = new Point(292, 36);
+            label26.Location = new Point(293, 123);
             label26.Name = "label26";
             label26.Size = new Size(135, 20);
             label26.TabIndex = 23;
@@ -867,7 +951,7 @@
             // label28
             // 
             label28.AutoSize = true;
-            label28.Location = new Point(498, 61);
+            label28.Location = new Point(499, 148);
             label28.Name = "label28";
             label28.Size = new Size(21, 20);
             label28.TabIndex = 27;
@@ -878,7 +962,7 @@
             panel2.BackColor = Color.Green;
             panel2.BorderStyle = BorderStyle.FixedSingle;
             panel2.Controls.Add(label24);
-            panel2.Location = new Point(20, 163);
+            panel2.Location = new Point(21, 250);
             panel2.Name = "panel2";
             panel2.Size = new Size(50, 27);
             panel2.TabIndex = 19;
@@ -897,7 +981,7 @@
             // 
             ThresholdRAMMax.BackColor = Color.Firebrick;
             ThresholdRAMMax.ForeColor = Color.White;
-            ThresholdRAMMax.Location = new Point(125, 163);
+            ThresholdRAMMax.Location = new Point(126, 250);
             ThresholdRAMMax.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             ThresholdRAMMax.Name = "ThresholdRAMMax";
             ThresholdRAMMax.Size = new Size(50, 27);
@@ -909,7 +993,7 @@
             // 
             ThresholdRAMMin.BackColor = Color.Gold;
             ThresholdRAMMin.ForeColor = Color.Black;
-            ThresholdRAMMin.Location = new Point(73, 163);
+            ThresholdRAMMin.Location = new Point(74, 250);
             ThresholdRAMMin.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             ThresholdRAMMin.Name = "ThresholdRAMMin";
             ThresholdRAMMin.Size = new Size(50, 27);
@@ -921,7 +1005,7 @@
             // 
             label23.AutoSize = true;
             label23.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
-            label23.Location = new Point(12, 140);
+            label23.Location = new Point(13, 227);
             label23.Name = "label23";
             label23.Size = new Size(108, 20);
             label23.TabIndex = 17;
@@ -930,7 +1014,7 @@
             // label25
             // 
             label25.AutoSize = true;
-            label25.Location = new Point(174, 165);
+            label25.Location = new Point(175, 252);
             label25.Name = "label25";
             label25.Size = new Size(45, 20);
             label25.TabIndex = 21;
@@ -941,7 +1025,7 @@
             panel1.BackColor = Color.Green;
             panel1.BorderStyle = BorderStyle.FixedSingle;
             panel1.Controls.Add(label20);
-            panel1.Location = new Point(20, 112);
+            panel1.Location = new Point(21, 199);
             panel1.Name = "panel1";
             panel1.Size = new Size(50, 27);
             panel1.TabIndex = 13;
@@ -960,7 +1044,7 @@
             // 
             ThresholdGPUMax.BackColor = Color.Firebrick;
             ThresholdGPUMax.ForeColor = Color.White;
-            ThresholdGPUMax.Location = new Point(125, 112);
+            ThresholdGPUMax.Location = new Point(126, 199);
             ThresholdGPUMax.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             ThresholdGPUMax.Name = "ThresholdGPUMax";
             ThresholdGPUMax.Size = new Size(50, 27);
@@ -972,7 +1056,7 @@
             // 
             ThresholdGPUMin.BackColor = Color.Gold;
             ThresholdGPUMin.ForeColor = Color.Black;
-            ThresholdGPUMin.Location = new Point(73, 112);
+            ThresholdGPUMin.Location = new Point(74, 199);
             ThresholdGPUMin.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             ThresholdGPUMin.Name = "ThresholdGPUMin";
             ThresholdGPUMin.Size = new Size(50, 27);
@@ -984,7 +1068,7 @@
             // 
             label19.AutoSize = true;
             label19.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
-            label19.Location = new Point(12, 89);
+            label19.Location = new Point(13, 176);
             label19.Name = "label19";
             label19.Size = new Size(104, 20);
             label19.TabIndex = 11;
@@ -993,7 +1077,7 @@
             // label22
             // 
             label22.AutoSize = true;
-            label22.Location = new Point(174, 114);
+            label22.Location = new Point(175, 201);
             label22.Name = "label22";
             label22.Size = new Size(45, 20);
             label22.TabIndex = 15;
@@ -1004,7 +1088,7 @@
             panel3.BackColor = Color.Green;
             panel3.BorderStyle = BorderStyle.FixedSingle;
             panel3.Controls.Add(label17);
-            panel3.Location = new Point(20, 59);
+            panel3.Location = new Point(21, 146);
             panel3.Name = "panel3";
             panel3.Size = new Size(50, 27);
             panel3.TabIndex = 3;
@@ -1023,7 +1107,7 @@
             // 
             ThresholdCPUMax.BackColor = Color.Firebrick;
             ThresholdCPUMax.ForeColor = Color.White;
-            ThresholdCPUMax.Location = new Point(125, 59);
+            ThresholdCPUMax.Location = new Point(126, 146);
             ThresholdCPUMax.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             ThresholdCPUMax.Name = "ThresholdCPUMax";
             ThresholdCPUMax.Size = new Size(50, 27);
@@ -1035,7 +1119,7 @@
             // 
             ThresholdCPUMin.BackColor = Color.Gold;
             ThresholdCPUMin.ForeColor = Color.Black;
-            ThresholdCPUMin.Location = new Point(73, 59);
+            ThresholdCPUMin.Location = new Point(74, 146);
             ThresholdCPUMin.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             ThresholdCPUMin.Name = "ThresholdCPUMin";
             ThresholdCPUMin.Size = new Size(50, 27);
@@ -1047,7 +1131,7 @@
             // 
             label14.AutoSize = true;
             label14.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
-            label14.Location = new Point(12, 36);
+            label14.Location = new Point(13, 123);
             label14.Name = "label14";
             label14.Size = new Size(102, 20);
             label14.TabIndex = 0;
@@ -1056,7 +1140,7 @@
             // label16
             // 
             label16.AutoSize = true;
-            label16.Location = new Point(174, 61);
+            label16.Location = new Point(175, 148);
             label16.Name = "label16";
             label16.Size = new Size(45, 20);
             label16.TabIndex = 9;
@@ -1066,7 +1150,7 @@
             // 
             ThresholdPingMin.BackColor = Color.Gold;
             ThresholdPingMin.ForeColor = Color.Black;
-            ThresholdPingMin.Location = new Point(364, 163);
+            ThresholdPingMin.Location = new Point(365, 250);
             ThresholdPingMin.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
             ThresholdPingMin.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             ThresholdPingMin.Name = "ThresholdPingMin";
@@ -1079,7 +1163,7 @@
             // 
             ThresholdNetUpMin.BackColor = Color.Gold;
             ThresholdNetUpMin.ForeColor = Color.Black;
-            ThresholdNetUpMin.Location = new Point(364, 112);
+            ThresholdNetUpMin.Location = new Point(365, 199);
             ThresholdNetUpMin.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
             ThresholdNetUpMin.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             ThresholdNetUpMin.Name = "ThresholdNetUpMin";
@@ -1092,7 +1176,7 @@
             // 
             ThresholdNetDownMin.BackColor = Color.Gold;
             ThresholdNetDownMin.ForeColor = Color.Black;
-            ThresholdNetDownMin.Location = new Point(364, 59);
+            ThresholdNetDownMin.Location = new Point(365, 146);
             ThresholdNetDownMin.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
             ThresholdNetDownMin.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             ThresholdNetDownMin.Name = "ThresholdNetDownMin";
@@ -1111,7 +1195,7 @@
             tabPage4.Controls.Add(gridBluetooth);
             tabPage4.Location = new Point(4, 32);
             tabPage4.Name = "tabPage4";
-            tabPage4.Size = new Size(534, 354);
+            tabPage4.Size = new Size(534, 367);
             tabPage4.TabIndex = 4;
             tabPage4.Text = "\U0001faab Bluetooth devices";
             tabPage4.UseVisualStyleBackColor = true;
@@ -1483,7 +1567,7 @@
             lblBattery.BackColor = Color.Black;
             lblBattery.Font = new Font("Consolas", 7.20000029F, FontStyle.Regular, GraphicsUnit.Point);
             lblBattery.ForeColor = Color.White;
-            lblBattery.Location = new Point(582, 499);
+            lblBattery.Location = new Point(582, 518);
             lblBattery.Name = "lblBattery";
             lblBattery.Size = new Size(341, 15);
             lblBattery.TabIndex = 38;
@@ -1515,7 +1599,7 @@
             txtDebugColor.Name = "txtDebugColor";
             txtDebugColor.ReadOnly = true;
             txtDebugColor.ScrollBars = RichTextBoxScrollBars.None;
-            txtDebugColor.Size = new Size(537, 386);
+            txtDebugColor.Size = new Size(537, 405);
             txtDebugColor.TabIndex = 40;
             txtDebugColor.Text = "";
             // 
@@ -1540,7 +1624,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Control;
             BackgroundImageLayout = ImageLayout.Stretch;
-            ClientSize = new Size(1130, 522);
+            ClientSize = new Size(1130, 541);
             Controls.Add(txtDebugColor);
             Controls.Add(chkVerbose);
             Controls.Add(lblBattery);
@@ -1583,6 +1667,7 @@
             ((System.ComponentModel.ISupportInitialize)numOBSPort).EndInit();
             tabPage3.ResumeLayout(false);
             tabPage3.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)trackBar_hwRefreshRate).EndInit();
             panel6.ResumeLayout(false);
             panel6.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)ThresholdPingMax).EndInit();
@@ -1741,5 +1826,14 @@
         private Label label15;
         private CheckBox chkEnableBluetoothMonitoring;
         private Label label37;
+        private Label lblOBSMicStatusX;
+        private Label label41;
+        private Label lblOBSVidStatus;
+        private Label lblOBSMicStatus;
+        private CheckBox chkShowVPNIndicator;
+        private Label lblRefreshRate;
+        private TrackBar trackBar_hwRefreshRate;
+        private Label label38;
+        private CheckBox chkMinimizeToTray;
     }
 }

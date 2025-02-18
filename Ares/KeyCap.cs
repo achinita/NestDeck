@@ -1,17 +1,4 @@
-﻿using SHARK_Deck;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using static SHARK_Deck.KeyboardMonitor;
-
-using WindowsInput.Native;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
+﻿using WindowsInput.Native;
 
 namespace Nest_Deck
 {

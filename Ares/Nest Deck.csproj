@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\GoogleCast\GoogleCast\GoogleCast.csproj" />
+    <ProjectReference Include="..\..\Sharpcaster\Sharpcaster.csproj" />
   </ItemGroup>
 
   <ItemGroup>

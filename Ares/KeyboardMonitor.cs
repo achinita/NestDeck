@@ -1,14 +1,4 @@
 ﻿using Gma.System.MouseKeyHook;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using Nest_Deck;
-using OBSWebsocketDotNet.Types;
-using WindowsInput;
 
 namespace SHARK_Deck
 {
@@ -18,7 +8,7 @@ namespace SHARK_Deck
         private bool isAltPressed = false;
         private bool isTabPressed = false;
 
-        public KeyboardMonitor() 
+        public KeyboardMonitor()
         {
             Subscribe();
         }
@@ -29,7 +19,7 @@ namespace SHARK_Deck
         public bool IsAltPressed { get => isAltPressed; set => isAltPressed = value; }
         public bool IsTabPressed { get => isTabPressed; set => isTabPressed = value; }
 
-        public void Subscribe()
+        private void Subscribe()
         {
             m_GlobalHook = Hook.GlobalEvents();
             m_GlobalHook.KeyDown += M_GlobalHook_KeyDown;
@@ -43,23 +33,23 @@ namespace SHARK_Deck
         private EventType _lastEvent;
         private void M_GlobalHook_KeyUp(object? sender, KeyEventArgs e)
         {
-            
+
             if (e.KeyValue == 9) IsTabPressed = false;
             if (e.KeyValue == 164) IsAltPressed = false;
 
             if (_lastEvent == EventType.KeyDown) OnKeyPress(this, e);
             _lastEvent = EventType.KeyUp;
-            //if (_pressedsKeys.Contains(e.KeyValue)) _pressedsKeys.Remove(e.KeyValue);
+            //if (_pressedsKeys.Contains(e.KeyValue)) _pressedsKeys.Remove(e.KeyValue);v
         }
 
         private void M_GlobalHook_KeyDown(object? sender, KeyEventArgs e)
         {
 
-            if (e.KeyValue == 9) IsTabPressed= true;
-            if (e.KeyValue == 164) IsAltPressed= true;
+            if (e.KeyValue == 9) IsTabPressed = true;
+            if (e.KeyValue == 164) IsAltPressed = true;
             _lastEvent = EventType.KeyDown;
 
-           // if (!_pressedsKeys.Contains(e.KeyValue)) _pressedsKeys.Add(e.KeyValue);
+            // if (!_pressedsKeys.Contains(e.KeyValue)) _pressedsKeys.Add(e.KeyValue);
         }
 
         //List<int> _pressedsKeys = new List<int>();
@@ -70,4 +60,4 @@ namespace SHARK_Deck
             KeyPress?.Invoke(this, e);
         }
     }
-}   
+}

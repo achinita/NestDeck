@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace SHARK_Deck
 {
@@ -23,6 +13,8 @@ namespace SHARK_Deck
         {
             this.BackColor = Color.FromArgb(34, 34, 34);
             label1.ForeColor = Color.WhiteSmoke;
+            lstProcesses.BackColor = this.BackColor;
+            lstProcesses.ForeColor = Color.WhiteSmoke;
             this.ActiveControl = textBox1;
             processList();
         }

@@ -5,7 +5,7 @@ VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nest Deck", "Ares\Nest Deck.csproj", "{4A6004F9-D1B7-479E-9B83-FA21B96A3A6D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleCast", "..\GoogleCast\GoogleCast\GoogleCast.csproj", "{03615E69-5013-4770-B39F-1761C293D121}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sharpcaster", "..\Sharpcaster\Sharpcaster.csproj", "{52BD219E-D709-478E-9A1E-DB2B0190CCAD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{4A6004F9-D1B7-479E-9B83-FA21B96A3A6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A6004F9-D1B7-479E-9B83-FA21B96A3A6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4A6004F9-D1B7-479E-9B83-FA21B96A3A6D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{03615E69-5013-4770-B39F-1761C293D121}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{03615E69-5013-4770-B39F-1761C293D121}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{03615E69-5013-4770-B39F-1761C293D121}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{03615E69-5013-4770-B39F-1761C293D121}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52BD219E-D709-478E-9A1E-DB2B0190CCAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52BD219E-D709-478E-9A1E-DB2B0190CCAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52BD219E-D709-478E-9A1E-DB2B0190CCAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52BD219E-D709-478E-9A1E-DB2B0190CCAD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

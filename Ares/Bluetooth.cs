@@ -1,20 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using System.IO;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System.Diagnostics;
-using static Nest_Deck.Bluetooth;
 
 namespace Nest_Deck
 {
     public class Bluetooth
     {
         private const string toolPath = "Tools\\BtFinder\\BtFinder.exe";
-        
+
         public static bool CheckTool()
         {
             return File.Exists(toolPath);
@@ -65,7 +57,7 @@ namespace Nest_Deck
                 public List<BtDevice> DeviceList;
                 public string Error;
             }
-            public static BtDeviceData GetAllDevices() 
+            public static BtDeviceData GetAllDevices()
             {
                 BtDeviceData deviceData = new BtDeviceData();
                 deviceData.DeviceList = new List<BtDevice>();
@@ -94,7 +86,7 @@ namespace Nest_Deck
 
                     if (error != null && error != string.Empty)
                     {
-                        deviceData.Error = error;   
+                        deviceData.Error = error;
                     }
                     else
                     {
@@ -116,10 +108,10 @@ namespace Nest_Deck
             {
                 switch (type)
                 {
-                    case "Keyboard": return "⌨"; break;
-                    case "Mouse": return "🖱️"; break;
-                    case "Audio": return "🎧"; break;
-                    case "Gamepad": return "🎮"; break;
+                    case "Keyboard": return "⌨";
+                    case "Mouse": return "🖱️"; 
+                    case "Audio": return "🎧";
+                    case "Gamepad": return "🎮";
                     default: return "";
                 }
             }

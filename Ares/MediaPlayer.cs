@@ -1,15 +1,7 @@
 ﻿using NAudio.Wave;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using Windows.Media.Control;
-using Windows.Media.Playback;
-using Windows.Storage.Streams;
-using Windows.Storage;
 
 namespace Nest_Deck
 {
@@ -19,13 +11,13 @@ namespace Nest_Deck
         private IWavePlayer waveOut;
         private AudioFileReader audioFileReader;
 
-        public MediaPlayer() 
+        public MediaPlayer()
         {
             InitMediaEvents();
             waveOut = new WaveOutEvent();
         }
 
-        public void SystemSound_Tap() 
+        public void SystemSound_Tap()
         {
             this.Play("sound\\tap.mp3", true);
         }
@@ -33,11 +25,11 @@ namespace Nest_Deck
         {
             this.Play("sound\\switchon.mp3", true);
         }
-        public string Play(string filePath, bool PlayOverOtherSounds = false) 
+        public string Play(string filePath, bool PlayOverOtherSounds = false)
         {
             try
             {
-                if(PlayOverOtherSounds == false ) waveOut.Stop();
+                if (PlayOverOtherSounds == false) waveOut.Stop();
                 if (filePath != "")
                 {
                     waveOut = new WaveOutEvent();
@@ -46,15 +38,15 @@ namespace Nest_Deck
                     waveOut.Play();
                 }
                 return string.Empty;
-            } 
-            catch (Exception ex) 
+            }
+            catch (Exception ex)
             {
                 return "Error playing audio file :" + ex.Message;
             }
         }
 
-        public void Stop() 
-        { 
+        public void Stop()
+        {
             waveOut.Stop();
         }
         public string Serialize()
@@ -105,11 +97,12 @@ namespace Nest_Deck
                     IsPlaying = playbackInfo.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
                     OnSongChanged();
                 }
-            } catch
+            }
+            catch
             {
                 //Do nothing
             }
-            
+
         }
 
         private async void S_MediaPropertiesChanged(GlobalSystemMediaTransportControlsSession sender, MediaPropertiesChangedEventArgs args)
@@ -131,7 +124,9 @@ namespace Nest_Deck
                         S_PlaybackInfoChanged(sender, null);
                     }
                 }
-            } catch { 
+            }
+            catch
+            {
                 //Do nothing
             }
         }

@@ -1,47 +1,36 @@
-﻿using GoogleCast;
-using GoogleCast.Models.Receiver;
-using Microsoft.Win32;
-using Newtonsoft.Json;
-using SHARK_Deck;
-using Nest_Deck;
+﻿using Nest_Deck;
 //using static System.Net.WebRequestMethods;
 
 using Nest_Deck.Properties;
+using Newtonsoft.Json;
+using SHARK_Deck;
+using Sharpcaster;
+using Sharpcaster.Interfaces;
+using Sharpcaster.Models;
+using Sharpcaster.Models.ChromecastStatus;
+using Sharpcaster.Models.Media;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
-using System.Runtime.InteropServices;
+using System.Security.Cryptography.Xml;
 using System.Text;
+using System.Web;
 using System.Windows.Threading;
+using Windows.Media.Protection.PlayReady;
 using WindowsInput;
-using System.Xml;
-using System.Xml.Linq;
-using System.DirectoryServices.ActiveDirectory;
-using System.Windows.Interop;
-using WebSocketSharp;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using GoogleCast.Channels;
-using Microsoft.Extensions.DependencyInjection;
-
-using NAudio.Wave;
-using static SHARK_Deck.VolumeMixer;
-using System.Threading;
-using NAudio.CoreAudioApi;
-using System.Windows.Controls;
 using static Nest_Deck.Bluetooth;
-using System.Net.NetworkInformation;
-using System.Windows.Forms;
-using System;
+using static SHARK_Deck.VolumeMixer;
 
 namespace Ares
 {
     public partial class SHARK : Form
     {
         const string appName = "Nest Deck";
-        private const string _urlEditor = "https://achinita.outsystemscloud.com/SHARK2/Config";
-        //private const string sseStreamUrl =         "https://achinita.outsystemscloud.com/SHARK_IS/rest/SSE/Subscribe";
-        private const string _urlRegisterDevice = "https://achinita.outsystemscloud.com/SHARK2/rest/SynchronizeDevice/RegisterDevice?DeviceId=";
+        private const string _urlEditor = "https://achinita.outsystemscloud.com/SHARK2/Editor";
+        private const string _urlVersion = "https://nestdeck.base64.pt/version?";
         private const string _urlSendData = "https://achinita.outsystemscloud.com/SHARK2/rest/SynchronizeDevice/SendData?DeviceId=";
+
 
         private Options opts = new Options();
         private OBS OBS = new OBS();
@@ -56,6 +45,10 @@ namespace Ares
         private SSE editorEvents = new SSE();
 
         List<Bluetooth.BtDevice> btDevices = new List<Bluetooth.BtDevice>();
+
+        ChromecastClient chromecastClient = new ChromecastClient();
+        bool cast_connected = false;
+        private DeviceItem chromecastReceiver = null;
 
         public SHARK()
         {
@@ -108,15 +101,37 @@ namespace Ares
             OBS.UpdatedStreamingStatus += OBS_UpdatedStreamingStatus;
             mediaPlayer.SongChanged += MediaPlayer_SongChanged;
             hw.VPNChanged += Hw_VPNChanged;
+            OBS.InputMuteStatusChanged += OBS_InputMuteStatusChanged;
+            keyboardMonitor.KeyPress += Monitor_KeyPress;
 
             debug("NestDeck loaded.");
             timerMonitorProcess.Enabled = true;
 
             Updater.CheckVersion(); //Version check from web service
+
             if (opts.AutoCast && opts.DeviceId != "" && cmbDeviceList.SelectedIndex >= 0) { btCast_Click(sender, new EventArgs()); } //Auto cast on start
 
+            //Open what's new
+            if (opts.LastReadmeVersion != Updater.currentVersion)
+            {
+                ProcessStartInfo pi = new ProcessStartInfo();
+                pi.UseShellExecute = true;
+                pi.FileName = _urlVersion + Updater.currentVersion;
+
+                Process.Start(pi);
+
+                opts.LastReadmeVersion = Updater.currentVersion;
+                opts.Save();
+            }
 
             //mediaPlayer.Play("holygrenade.mp3");
+        }
+
+        private void OBS_InputMuteStatusChanged(object? sender, EventArgs e)
+        {
+            LogMessage("[Audio] Input muted: " + (OBS.AllInputDevicesMuted ? "Yes" : "No"));
+            if (cast_connected) SendMessageToChromecast(SSE.Messages.Msg_OBSStatus, OBS.Serialize());
+            OBSUIChange();
         }
 
         //Need to restore connections on vpn status changed
@@ -148,7 +163,7 @@ namespace Ares
             }
             if (cast_connected)
             {
-                SendData(SSE.MessageEnvelope.Build(SSE.Messages.OBSStatus, OBS.Serialize()));
+                SendMessageToChromecast(SSE.Messages.Msg_OBSStatus, OBS.Serialize());
             }
             OBSUIChange();
         }
@@ -165,7 +180,7 @@ namespace Ares
             }
             if (cast_connected)
             {
-                SendData(SSE.MessageEnvelope.Build(SSE.Messages.OBSStatus, OBS.Serialize()));
+                SendMessageToChromecast(SSE.Messages.Msg_OBSStatus, OBS.Serialize());
             }
             OBSUIChange();
         }
@@ -201,10 +216,16 @@ namespace Ares
         class DeviceItem
         {
             public string Name { get; }
-            public IReceiver Receiver { get; }
-            public DeviceItem(IReceiver receiver)
+            public string Model { get; }
+            public string Capabilities { get; }
+            public string Id { get; }
+            public ChromecastReceiver Receiver { get; }
+            public DeviceItem(ChromecastReceiver receiver)
             {
-                Name = receiver.FriendlyName;
+                Id = receiver.ExtraInformation["id"];
+                Capabilities = receiver.ExtraInformation["ca"];
+                Name = receiver.Name;
+                Model = receiver.Model;
                 Receiver = receiver;
             }
 
@@ -219,13 +240,16 @@ namespace Ares
             btRefreshCastDevices.Enabled = false;
             debug("Looking for cast devices...");
             cmbDeviceList.Items.Clear();
-            var receivers = await new DeviceLocator().FindReceiversAsync();
 
-            foreach (var receiver in receivers)
+            IChromecastLocator locator = new MdnsChromecastLocator();
+            var source = new CancellationTokenSource(TimeSpan.FromMilliseconds(1500));
+            var chromecasts = await locator.FindReceiversAsync(source.Token);
+
+            foreach (var receiver in chromecasts)
             {
                 var r = new DeviceItem(receiver);
                 cmbDeviceList.Items.Add(r);
-                if (receiver.Id == opts.DeviceId) cmbDeviceList.SelectedIndex = cmbDeviceList.Items.Count - 1;
+                if (r.Id == opts.DeviceId) cmbDeviceList.SelectedIndex = cmbDeviceList.Items.Count - 1; //Pre select last used device
             }
 
             if (cmbDeviceList.Items.Count == 0) cmbDeviceList.Enabled = false;
@@ -355,6 +379,7 @@ namespace Ares
             if (msg == "lookForProcess")
             {
                 ProcessFinder pf = new ProcessFinder();
+                Utils.CenterOverActiveWindow(pf);
                 var result = pf.ShowDialog();
                 if (result == DialogResult.OK) SSEMessage(opts.Auth, "process " + pf.ProcessName);
                 else SSEMessage(opts.Auth, "process");
@@ -397,7 +422,7 @@ namespace Ares
                 //Null = First process change
                 if (_activeWindow == null || (_activeWindow.isDifferent(currentActiveWindow) && !keyboardMonitor.IsAltPressed))
                 {
-                    if (_activeWindow != null) SendData(SSE.MessageEnvelope.Build(SSE.Messages.ProcessChanged, currentActiveWindow.Serialize()));
+                    if (_activeWindow != null) SendMessageToChromecast(SSE.Messages.Msg_ProcessChanged, currentActiveWindow.Serialize());
                     _activeWindow = currentActiveWindow;
 
                 }
@@ -407,21 +432,16 @@ namespace Ares
 
         #region Cast
 
-        Sender chromecastSender = new Sender();
-        ReceiverStatus receiverStatus = new ReceiverStatus();
-        bool cast_connected = false;
-        IReceiver receiver = null;
-
-
         private void InitializeCastResources()
         {
             bool cast_connected = false;
-            chromecastSender.Disconnected += ChromecastSender_Disconnected;
+            chromecastClient.Disconnected += ChromecastSender_Disconnected;
+            chromecastClient.NestDeckChannel.MessageReceived += SHARK_MessageReceived;
 
             editorEvents.OnMessage += Events_OnMessage;
             editorEvents.OnStatusChange += Events_OnStatusChange;
-            events.OnMessage += Events_OnMessage;
-            events.OnStatusChange += Events_OnStatusChange;
+            //events.OnMessage += Events_OnMessage;
+            //events.OnStatusChange += Events_OnStatusChange;
 
             if (opts.Auth != "") editorEvents.Connect(opts.Auth);
         }
@@ -467,6 +487,7 @@ namespace Ares
         private void DetectKeys()
         {
             keycap = new KeyCap();
+            Utils.CenterOverActiveWindow(keycap);
             var res = keycap.ShowDialog();
             if (res == DialogResult.OK)
             {
@@ -496,6 +517,11 @@ namespace Ares
                 {
                     switch (sseMsg.type)
                     {
+                        case SSE.Messages.Evt_ForceRefresh:
+                            {
+                                SendMessageToChromecast(sseMsg.type, sseMsg.data); // Just forward it to the nest hub
+                                break;
+                            }
                         case SSE.Actions.FindAudio:
                             {
                                 backgroundWorker1.ReportProgress(1, sseMsg.type);
@@ -507,7 +533,7 @@ namespace Ares
                                 if (errorMsg != string.Empty) LogMessage(errorMsg, true);
                                 break;
                             }
-                        case SSE.Messages.TestAction:
+                        case SSE.Messages.Evt_TestAction:
                             {
                                 try
                                 {
@@ -550,7 +576,7 @@ namespace Ares
                                     if (cast_connected)
                                     {
                                         //Trigger on device
-                                        SendData(SSE.Messages.ForceRefresh_Evt);
+                                        SendMessageToChromecast(SSE.Messages.Msg_ForceRefresh);
                                     }
                                     else
                                     {
@@ -563,48 +589,16 @@ namespace Ares
                                     StartDetectKeys();
                                     break;
                                 }
-                            case SSE.Messages.AuthenticationRequest:
-                                {
-                                    LogMessage("Application initialized. Pairing...");
-                                    HttpClient client = new HttpClient();
-                                    client.GetAsync(_urlRegisterDevice + opts.DeviceId + "&AuthData=" + opts.Auth);
-                                    break;
-                                }
                             case SSE.Messages.Ping:
                                 {
-                                    sendPong(args[1]);
+                                    //sendPong(args[1]);
                                     break;
                                 }
-                            case SSE.Messages.ConnectionSuccess:
-                                {
-                                    sendPong();
-                                    LogMessage("Application paired. Ready.");
-                                    break;
-                                }
+
                             case SSE.Messages.Timeout:
                                 {
                                     LogMessage("Chromecast application lost connection to Windows. (Timeout)");
                                     if (cast_connected) backgroundWorker1.ReportProgress(1, "forceDisconnect");
-                                    break;
-                                }
-                            case SSE.Messages.ButtonTap:
-                                {
-                                    try
-                                    {
-                                        if (opts.PlaySounds && opts.PlayOnPc) mediaPlayer.SystemSound_Switch();
-
-                                        List<Action> actions = JsonConvert.DeserializeObject<List<Action>>(commandData);
-                                        LogMessage("Button pressed. Running " + actions.Count + " actions");
-                                        foreach (Action a in actions)
-                                        {
-                                            string err = handleAction(a);
-                                            if (err != "") LogMessage(err);
-                                        }
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        LogMessage("[Error] Error executing command: " + ex.Message, true);
-                                    }
                                     break;
                                 }
                             default:
@@ -620,26 +614,7 @@ namespace Ares
 
                     switch (command)
                     {
-                        case "reqAudio":
-                            {
-                                //LogMessage("Audio levels check requested");
-                                var audioProcesses = volumeMixer.GetAudioProcesses();
-                                //something
-                                foreach (var device in OBS.GetAudioDevices())
-                                {
-                                    AudioProcess proc = new AudioProcess();
-                                    proc.isOBS = true;
-                                    proc.Name = device.Name;
-                                    proc.Volume = device.Volume;
-                                    audioProcesses.Add(proc);
-                                }
 
-                                string json = JsonConvert.SerializeObject(audioProcesses);
-
-                                LogMessage("Audio levels - Main volume " + audioProcesses.First().Volume + "% | Processes: " + (audioProcesses.Count - 1));
-                                SendData("audioData|" + json);
-                                break;
-                            }
                         case "lookForFile":
                             {
                                 backgroundWorker1.ReportProgress(1, "lookForFile");
@@ -652,32 +627,6 @@ namespace Ares
                             }
                         default:
                             {
-                                if (command.IndexOf("setVol|") == 0)
-                                {
-
-                                    command = command.Replace("setVol|", "");
-                                    VolumeMixer.AudioProcess proc = JsonConvert.DeserializeObject<VolumeMixer.AudioProcess>(command);
-
-                                    LogMessage("Setting volume of " + proc.Name + " to " + proc.Volume + "%");
-
-                                    if (!proc.isOBS)
-                                    {
-                                        if (proc.PId == 0) volumeMixer.setGeneralVolume(proc.Volume);
-                                        else VolumeMixer.SetApplicationVolume(proc.PId, proc.Volume);
-                                    }
-                                    else
-                                    {
-                                        if (OBS.IsConnected)
-                                        {
-                                            OBS.OBSData cmd = new OBS.OBSData();
-                                            cmd.Command = OBS.Commands.InputSetVolume;
-                                            cmd.Parameter1 = proc.Name;
-                                            cmd.Parameter2 = (-1 * (100 - proc.Volume)).ToString();
-
-                                            OBS.handleCommand(cmd.Serialize());
-                                        }
-                                    }
-                                }
                                 break;
                             }
                     }
@@ -703,11 +652,7 @@ namespace Ares
             lastSentMessage = data;
             Verbose("SENT: " + data);
         }
-        private void SendData(string data)
-        {
-            //events.PostMessage(data);
-            SSEMessage(opts.DeviceId, data);
-        }
+
         private async void btCast_Click(object sender, EventArgs e)
         {
             if (opts.Auth == "")
@@ -735,25 +680,27 @@ namespace Ares
                 try
                 {
                     cmbDeviceList.Enabled = false;
-                    debug("Connecting to server...");
+                    debug("Starting chromecast...");
+                    chromecastReceiver = (DeviceItem)(cmbDeviceList.SelectedItem);
 
-                    receiver = ((DeviceItem)(cmbDeviceList.SelectedItem)).Receiver;
-                    opts.DeviceId = receiver.Id;
+                    opts.DeviceId = chromecastReceiver.Id;
                     opts.Save();
                     //debug("Initializing connection...");
                     //Connect data connection
-                    await events.Connect(receiver.Id);
+                    //await events.Connect(chromecastReceiver.Id);
 
-                    SendData(SSE.Messages.TerminationSignal); //Close any running instances
+                    SendMessageToChromecast(SSE.Messages.Msg_TerminationSignal); //Close any running instances
 
                     Thread.Sleep(1000); //Wait 1 Second
 
                     // Connect to the Chromecast
-                    chromecastSender.Connect(receiver);
+                    LogMessage("Connecting to Chromecast @ " + chromecastReceiver.Receiver.DeviceUri.Host + ":" + chromecastReceiver.Receiver.Port + "...", false, true);
+                    await chromecastClient.ConnectChromecast(chromecastReceiver.Receiver);
+                    LogMessage("Launching application...", false, true);
+                    _ = await chromecastClient.LaunchApplicationAsync("1A79419F");
 
                     //1A79419F New
                     //8A47528F Old
-                    receiverStatus = await chromecastSender.LaunchAsync("1A79419F");
 
                     debug("Chromecast initialized.");
                     cast_connected = true;
@@ -765,7 +712,8 @@ namespace Ares
                 }
                 catch (Exception ex)
                 {
-                    SendData(SSE.Messages.TerminationSignal);
+                    SendMessageToChromecast(SSE.Messages.Msg_TerminationSignal);
+                    await chromecastClient.DisconnectAsync();
                     statusCast.Image = Resources.icons8_no_network_16;
                     cast_connected = false;
                     btCast.Text = "📺 Cast";
@@ -776,24 +724,24 @@ namespace Ares
             }
             else
             {
-                receiver = null;
+                chromecastReceiver = null;
                 cast_connected = false;
                 debug("Disconnecting...");
-                chromecastSender.Disconnect();
+                await chromecastClient.DisconnectAsync();
                 events.Disconnect();
                 statusCast.Image = Resources.icons8_no_network_16;
                 btCast.Text = "📺 Cast";
                 cmbDeviceList.Enabled = true;
                 //cmbDevices.Font = new Font(cmbDevices.Font, FontStyle.Regular);
 
-                SendData(SSE.Messages.TerminationSignal);
+                SendMessageToChromecast(SSE.Messages.Msg_TerminationSignal);
             }
             btCast.Enabled = true;
         }
 
         private void ChromecastSender_Disconnected(object? sender, EventArgs e)
         {
-            receiver = null;
+            chromecastReceiver = null;
             cast_connected = false;
             statusCast.Image = Resources.icons8_no_network_16;
             btCast.Text = "📺 Cast";
@@ -827,6 +775,9 @@ namespace Ares
                 opts.PlayOnPc = rdAudioFeedback_PlayInPc.Checked;
                 opts.ShowTrail = chkShowTrail.Checked;
                 opts.EnableBluetoothMonitoring = chkEnableBluetoothMonitoring.Checked;
+                opts.ShowVPNIndicator = chkShowVPNIndicator.Checked;
+                opts.HardwareRefreshRate = trackBar_hwRefreshRate.Value;
+                opts.MinimizeToTray = chkMinimizeToTray.Checked;
 
                 //Update UI
                 this.TopMost = chkAlwaysOnTop.Checked;
@@ -902,6 +853,10 @@ namespace Ares
 
             btOBSWSConnect.Enabled = true;
             btOBSWSConnect.Text = OBS.WebSocket.IsConnected ? "Disconnect" : "Connect";
+
+            lblOBSMicStatus.Text = (OBS.AllInputDevicesMuted ? "Muted" : "Open");
+            lblOBSMicStatus.ForeColor = (!OBS.AllInputDevicesMuted ? Color.Green : Color.Red);
+
         }
         private void toolClearLog_Click(object sender, EventArgs e)
         {
@@ -988,6 +943,12 @@ namespace Ares
             this.rdAudioFeedback_PlayInPc.Enabled = chkPlaySounds.Checked;
 
             chkShowTrail.Checked = opts.ShowTrail;
+            chkShowVPNIndicator.Checked = opts.ShowVPNIndicator;
+            chkMinimizeToTray.Checked = opts.MinimizeToTray;
+
+            trackBar_hwRefreshRate.Value = opts.HardwareRefreshRate;
+            render_hwMonitorRefreshRate();
+
 
             setAuthColor();
         }
@@ -995,9 +956,11 @@ namespace Ares
         {
             if (this.WindowState == FormWindowState.Minimized)
             {
-                Hide();
-                notifyIcon.Visible = true;
-                notifyIcon.ShowBalloonTip(2, "NestDeck", "NestDeck is running in the background.", ToolTipIcon.None);
+                if (chkMinimizeToTray.Checked) {
+                    Hide();
+                    notifyIcon.Visible = true;
+                    notifyIcon.ShowBalloonTip(2, "NestDeck", "NestDeck is running in the background.", ToolTipIcon.None);
+                }
             }
         }
         private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -1048,7 +1011,7 @@ namespace Ares
                     , "NestDeck", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (result == DialogResult.No) e.Cancel = true;
             }
-            if (e.Cancel == false && cast_connected) SendData(SSE.Messages.TerminationSignal); //Close any running instances
+            if (e.Cancel == false && cast_connected) SendMessageToChromecast(SSE.Messages.Msg_TerminationSignal); //Close any running instances
         }
         private void toolStripMenuItem_Exit_Click(object sender, EventArgs e)
         {
@@ -1058,7 +1021,7 @@ namespace Ares
                     , "NestDeck", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (result == DialogResult.Yes)
             {
-                if (cast_connected) SendData(SSE.Messages.TerminationSignal); //Close any running instances
+                if (cast_connected) SendMessageToChromecast(SSE.Messages.Msg_TerminationSignal); //Close any running instances
                 System.Windows.Forms.Application.Exit();
             }
 
@@ -1234,6 +1197,7 @@ namespace Ares
 
             if (chkEnableBluetoothMonitoring.Checked && bgWorkerRefreshBtDevices.IsBusy == false) bgWorkerRefreshBtDevices.RunWorkerAsync();
 
+            if (cast_connected) SendClientAndHardwareData();
         }
 
         private void checkForUpdatesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1301,17 +1265,10 @@ namespace Ares
             }
         }
 
-        private void sendPong(string argument = "")
+        private void SendClientAndHardwareData()
         {
-            if (receiver != null)
+            if (chromecastReceiver != null)
             {
-
-                var hasParsed = double.TryParse(argument, out hw.Ticks);
-                if (!hasParsed)
-                {
-                    hw.Ticks = 0;
-                }
-                hw.Ping = "<pingValue>";
                 //hw.Volume = VolumeMixer.GetMainVolumeLevel(); //Get master audio volume
 
                 string hwInfo = "{}";
@@ -1329,20 +1286,21 @@ namespace Ares
                 }
 
                 string json =
-                    "{'Model':'" + receiver.Model +
-                    "','Capabilities':'" + receiver.Capabilities +
+                    "{'Model':'" + chromecastReceiver.Model +
+                    "','Capabilities':'" + chromecastReceiver.Capabilities +
                     "','Version':'" + Updater.GetCurrentVersion() +
                     "', 'hwInfo': " + hwInfo +
                     ", 'Options':" + opts.SerializedNetworkOptions() +
                     ", OBS:" + OBS.Serialize() +
                     ", MediaInfo: " + mediaPlayer.Serialize() +
                     ", BatteryInfo: " + Bluetooth.BtDevice.SerializeList(opts.BluetoothDevices, btDevices) + " }";
-                SendData(SSE.Messages.Pong + json);
+
+                SendMessageToChromecast(SSE.Messages.Msg_HardwareValues, json);
             }
         }
         private void SendSystemInfo()
         {
-            if (receiver != null && cast_connected)
+            if (chromecastReceiver != null && cast_connected)
             {
                 string hwInfo = "{}";
                 try
@@ -1365,7 +1323,7 @@ namespace Ares
                     ", BatteryInfo: " + Bluetooth.BtDevice.SerializeList(opts.BluetoothDevices, btDevices) +
                     " }";
 
-                SendData(SSE.MessageEnvelope.Build(SSE.Messages.SystemInfo, json));
+                SendMessageToChromecast(SSE.Messages.Msg_HardwareValues, json);
             }
         }
 
@@ -1472,17 +1430,58 @@ namespace Ares
 
         private void pictureLogo_Click(object sender, EventArgs e)
         {
-            //Just to test some random stuff
-            string keys = @"[
-    {'ActionType':'SendKeystroke','Data':'27','ExtraData':'17,16'},  // Open Task Manager (Ctrl + Shift + Escape)
-    {'ActionType':'Wait','Data':'500','ExtraData':''},               // Wait for Task Manager to open
-    {'ActionType':'SendKeystroke','Data':'9','ExtraData':''},        // Press Tab to navigate to the tabs
-    {'ActionType':'SendKeystroke','Data':'9','ExtraData':''},        // Press Tab to reach the ""Details"" tab
-    {'ActionType':'SendKeystroke','Data':'13','ExtraData':''}        // Press Enter to select the ""Details"" tab
-]
-";
-            List<Action> actions = JsonConvert.DeserializeObject<List<Action>>(keys);
-            foreach (Action action in actions) { handleAction(action); }
+
         }
+
+        private void SHARK_MessageReceived(object? sender, string e)
+        {
+            var evtArgs = new SSE.SSEArguments();
+            evtArgs.Message = Utils.MsgPayload.GetMessage(e);
+            LogMessage("REC: " + evtArgs.Message, false, true);
+
+            HandleChromecastMessage(evtArgs.Message);
+        }
+
+        private async void SendMessageToChromecast(string eventType, string data = "")
+        {
+            if (cast_connected)
+            {
+                string msgJson = SSE.MessageEnvelope.Build(eventType, data);
+                chromecastClient.NestDeckChannel.SendTask("{\"type\":\"json\",\"data\":\"" + HttpUtility.JavaScriptStringEncode(msgJson) + "\"}");
+                LogMessage("SEN: " + msgJson, false, true);
+            }
+        }
+
+
+        private void KeepAlive()
+        {
+            if (cast_connected)
+            {
+                //https://nestdeck.base64.pt/assets/silence.mp3 (1min)
+                //https://nestdeck.base64.pt/assets/longsilence.mp3 (1hr)
+                //https://achinita.outsystemscloud.com/SHARK2/img/SHARK2.pixel.png
+                //Keep the receiver alive
+                var media = new Media
+                {
+                    ContentUrl = "https://nestdeck.base64.pt/assets/longsilence.mp3"
+                };
+                chromecastClient.MediaChannel.LoadAsync(media);
+                var stat = chromecastClient.GetChromecastStatus();
+            }
+        }
+
+        private void trackBar_hwRefreshRate_Scroll(object sender, EventArgs e)
+        {
+            opts.HardwareRefreshRate = trackBar_hwRefreshRate.Value;
+
+            render_hwMonitorRefreshRate();
+            SaveSettings(sender, e);
+        }
+        private void render_hwMonitorRefreshRate()
+        {
+            lblRefreshRate.Text = opts.HardwareRefreshRate + " second" + (opts.HardwareRefreshRate > 1 ? "s" : "");
+            timerMonitorHardware.Interval = opts.HardwareRefreshRate * 1000;
+        }
+
     }
 }

@@ -1,17 +1,70 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Nest_Deck
 {
     internal class Utils
     {
-        public static void KillOtherInstances(string appName) 
+        public class MsgPayload
+        {
+            public string type = "";
+            public string text = "";
+
+            public static string GetMessage(string basetext) 
+            {
+                var payload = JsonConvert.DeserializeObject<MsgPayload>(basetext);
+                return payload.text;
+            }
+
+            public MsgPayload (string msg)
+            {
+                type = "message";
+                text = msg;
+            }
+            public string Serialize()
+            {
+                return JsonConvert.SerializeObject(this);
+            }
+        }
+        // RECT structure to store window position and size
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+        [DllImport("user32.dll")]
+        private static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+        public static void CenterOverActiveWindow(Form frm)
+        {
+            // Get the handle of the currently active window
+            IntPtr activeWindowHandle = GetForegroundWindow();
+
+            if (activeWindowHandle != IntPtr.Zero)
+            {
+                // Get the active window's position and size
+                RECT activeWindowRect;
+                if (GetWindowRect(activeWindowHandle, out activeWindowRect))
+                {
+                    // Calculate the width and height of the active window
+                    int activeWindowWidth = activeWindowRect.Right - activeWindowRect.Left;
+                    int activeWindowHeight = activeWindowRect.Bottom - activeWindowRect.Top;
+
+                    // Calculate the center position of the active window
+                    int centerX = activeWindowRect.Left + (activeWindowWidth - frm.Width) / 2;
+                    int centerY = activeWindowRect.Top + (activeWindowHeight - frm.Height) / 2;
+
+                    // Set the form's location to the calculated center position
+                    frm.StartPosition = FormStartPosition.Manual;
+                    frm.Location = new Point(centerX, centerY);
+                }
+            }
+        }
+        public static void KillOtherInstances(string appName)
         {
             var curProc = Process.GetCurrentProcess();
             foreach (var p in Process.GetProcessesByName(appName))

@@ -35,8 +35,6 @@ C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.
 C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\NAudio.WinMM.dll
 C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\Newtonsoft.Json.dll
 C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\obs-websocket-dotnet.dll
-C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\protobuf-net.dll
-C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\protobuf-net.Core.dll
 C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\slf4net.dll
 C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\System.CodeDom.dll
 C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\System.Diagnostics.EventLog.dll
@@ -45,7 +43,6 @@ C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.
 C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\Microsoft.Win32.TaskScheduler.dll
 C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\Websocket.Client.dll
 C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\websocket-sharp.dll
-C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\Zeroconf.dll
 C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\de\Microsoft.Win32.TaskScheduler.resources.dll
 C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\es\Microsoft.Win32.TaskScheduler.resources.dll
 C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\fr\Microsoft.Win32.TaskScheduler.resources.dll
@@ -87,10 +84,7 @@ C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.
 C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\runtimes\win\lib\net7.0\System.Management.dll
 C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\Microsoft.Windows.SDK.NET.dll
 C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\WinRT.Runtime.dll
-C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\GoogleCast.dll
 C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\System.Reactive.dll
-C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\GoogleCast.pdb
-C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\GoogleCast.xml
 C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\System.Reactive.xml
 C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net7.0-windows10.0.17763.0\Nest Deck.csproj.CopyComplete
 C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net7.0-windows10.0.17763.0\Nest Deck.dll
@@ -98,3 +92,13 @@ C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net7.0-windows10.0.17763.
 C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net7.0-windows10.0.17763.0\Nest Deck.pdb
 C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net7.0-windows10.0.17763.0\Nest Deck.genruntimeconfig.cache
 C:\Users\anton\source\repos\SharkDeckV2\Ares\obj\Debug\net7.0-windows10.0.17763.0\ref\Nest Deck.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\Google.Protobuf.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\Microsoft.Bcl.AsyncInterfaces.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\Microsoft.Extensions.Logging.Abstractions.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\System.Diagnostics.DiagnosticSource.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\System.IO.Pipelines.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\System.Text.Encodings.Web.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\System.Text.Json.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\Tmds.MDns.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\Sharpcaster.dll
+C:\Users\anton\source\repos\SharkDeckV2\Ares\bin\Debug\net7.0-windows10.0.17763.0\Sharpcaster.pdb

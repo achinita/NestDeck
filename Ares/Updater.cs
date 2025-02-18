@@ -1,22 +1,11 @@
 ﻿using Newtonsoft.Json;
-using SHARK_Deck;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Diagnostics;
 
 namespace Nest_Deck
 {
     public partial class Updater : Form
     {
-        private const string currentVersion = "2.88.2";
+        public const string currentVersion = "3.0";
         public static string GetCurrentVersion()
         {
             return currentVersion;
@@ -26,6 +15,7 @@ namespace Nest_Deck
         {
             public string Version = "";
             public string URL = "";
+            public string Features = "";
             public VersionInfo() { }
         }
         public Updater()
@@ -139,7 +129,7 @@ namespace Nest_Deck
                 _httpClient?.Dispose();
             }
         }
-        private const string _checkVersionWs = "https://achinita.outsystemscloud.com/SHARK2/rest/SynchronizeDevice/CheckLatestVersion";
+        private const string _checkVersionWs = "https://achinita.outsystemscloud.com/NestDeckAPI/rest/VersionInfo/Latest";
         public static string CheckVersion()
         {
             string version = "";
@@ -153,17 +143,19 @@ namespace Nest_Deck
                 info = JsonConvert.DeserializeObject<VersionInfo>(task.Result);
 
                 version = info.Version;
-                //New version available?
+                //New version available? 
                 if (currentVersion != info.Version)
                 {
-                    var answer = MessageBox.Show("There's a new version of NestDeck available." + Environment.NewLine + "Would you like to download and install it now?", "NestDeck - New version", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    var answer = MessageBox.Show("There's a new version of NestDeck available." + Environment.NewLine +
+                        Environment.NewLine +
+                        "Would you like to download and install it now?", "NestDeck - New version", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                     if (answer == DialogResult.Yes)
                     {
                         Updater frmDownload = new Updater();
                         frmDownload.DownloadUrl = info.URL;
                         frmDownload.ShowDialog();
                     }
-                    
+
                 }
 
             }

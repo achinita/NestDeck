@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Win32.TaskScheduler;
+﻿using Microsoft.Win32.TaskScheduler;
 using Nest_Deck;
 using Newtonsoft.Json;
 
@@ -51,33 +44,44 @@ namespace SHARK_Deck
 
         public bool EnableBluetoothMonitoring { get; set; }
 
-        public Options() { 
+        public bool ShowVPNIndicator { get; set; }
+
+        public int HardwareRefreshRate { get; set; }
+
+        public string LastReadmeVersion { get; set; }
+        public bool MinimizeToTray { get; set; }
+
+        public Options()
+        {
             StartWithWindows = false; StartMinimized = false; MonitorProcess = false; Auth = ""; DeviceId = ""; OBSPort = 4445; OBSPassword = string.Empty;
             ThresholdCPUMin = 15; ThresholdCPUMax = 50;
             ThresholdGPUMin = 15; ThresholdGPUMax = 50;
             ThresholdRAMMin = 25; ThresholdRAMMax = 70;
             ThresholdNetUpMin = 2; ThresholdNetUpMax = 25;
             ThresholdNetDownMin = 2; ThresholdNetDownMax = 30;
-            ThresholdPingMin = 500; ThresholdPingMax = 800;
+            ThresholdPingMin = 50; ThresholdPingMax = 100;
             BluetoothDevices = new List<Bluetooth.BtDevice>();
             PlaySounds = true;
             PlayOnPc = true;
             ShowTrail = true;
+            ShowVPNIndicator = true;
+            HardwareRefreshRate = 1;
+            MinimizeToTray = false;
         }
-        private static string settingsPath ()
+        private static string settingsPath()
         {
             string appData = System.Windows.Forms.Application.UserAppDataPath;
             return appData + "\\" + settingsFile;
         }
 
-        public void Load() 
+        public void Load()
         {
             if (File.Exists(settingsPath()))
             {
                 Options o = JsonConvert.DeserializeObject<Options>(File.ReadAllText(settingsPath()));
                 this.StartMinimized = o.StartMinimized;
                 this.StartWithWindows = o.StartWithWindows;
-                this.MonitorProcess= o.MonitorProcess;
+                this.MonitorProcess = o.MonitorProcess;
                 this.Auth = o.Auth;
                 this.DeviceId = o.DeviceId;
                 this.AutoCast = o.AutoCast;
@@ -96,6 +100,11 @@ namespace SHARK_Deck
                 this.PlayOnPc = o.PlayOnPc;
                 this.ShowTrail = o.ShowTrail;
                 this.EnableBluetoothMonitoring = o.EnableBluetoothMonitoring;
+                this.ShowVPNIndicator = o.ShowVPNIndicator;
+                this.HardwareRefreshRate = o.HardwareRefreshRate;
+
+                this.LastReadmeVersion = o.LastReadmeVersion;
+                this.MinimizeToTray = o.MinimizeToTray;
             }
         }
 
@@ -109,11 +118,13 @@ namespace SHARK_Deck
         {
             public bool PlayAudioNestHub { get; set; }
             public bool ShowTrail { get; set; }
-            
+            public bool ShowVPNIndicator { get; set; }
+
             public OptionsNetwork(Options opts)
             {
                 PlayAudioNestHub = opts.PlaySounds && opts.PlayOnPc == false;
                 ShowTrail = opts.ShowTrail;
+                ShowVPNIndicator = opts.ShowVPNIndicator;
             }
         }
         public string SerializedNetworkOptions()

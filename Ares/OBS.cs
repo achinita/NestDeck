@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Newtonsoft.Json;
 using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Types;
-using System.Threading;
-using Newtonsoft.Json;
-using static SHARK_Deck.SSE;
-using static SHARK_Deck.VolumeMixer;
 
 namespace Nest_Deck
 {
@@ -23,14 +15,15 @@ namespace Nest_Deck
         }
     }
     internal class OBS
-    {   
+    {
         public OBSWebsocket WebSocket = new OBSWebsocket();
         public bool IsConnected { get; set; }
         [JsonProperty]
         public List<InputBasicInfo> Inputs = new List<InputBasicInfo>();
         [JsonProperty]
         List<Scene> Scenes = new List<Scene>();
-        public OBS() {
+        public OBS()
+        {
             WebSocket.Connected += Socket_Connected;
             WebSocket.Disconnected += Socket_Disconnected;
             WebSocket.InputNameChanged += WebSocket_InputNameChanged;
@@ -38,6 +31,39 @@ namespace Nest_Deck
             WebSocket.SceneNameChanged += WebSocket_SceneNameChanged;
             WebSocket.RecordStateChanged += WebSocket_RecordStateChanged;
             WebSocket.StreamStateChanged += WebSocket_StreamStateChanged;
+            WebSocket.InputMuteStateChanged += WebSocket_InputMuteStateChanged;
+        }
+        [JsonProperty]
+        public bool AllInputDevicesMuted { get; set; }
+        private const string DeviceType_AudioCapture = "wasapi_input_capture";
+        private bool GetAllDevicesMuted()
+        {
+            var muteStatus = true;
+            var similarDevices = WebSocket.GetInputList(DeviceType_AudioCapture);
+            foreach (var device in similarDevices)
+            {
+                var deviceMuted = WebSocket.GetInputMute(device.InputName);
+                if (deviceMuted != muteStatus)
+                {
+                    muteStatus = !muteStatus;
+                    break;
+                }
+            }
+            return muteStatus;
+        }
+        private void WebSocket_InputMuteStateChanged(object? sender, OBSWebsocketDotNet.Types.Events.InputMuteStateChangedEventArgs e)
+        {
+            var previousMutedStatus = AllInputDevicesMuted;
+            AllInputDevicesMuted = GetAllDevicesMuted();
+
+            if (previousMutedStatus != AllInputDevicesMuted) OnMuteStatusChanged();
+        }
+        public event EventHandler InputMuteStatusChanged;
+
+        protected virtual void OnMuteStatusChanged()
+        {
+
+            InputMuteStatusChanged?.Invoke(this, null);
         }
         [JsonProperty]
         public bool isStreaming = false;
@@ -107,14 +133,17 @@ namespace Nest_Deck
         {
             Thread.Sleep(1000); //Wait 1s - OBS might just have started and not have loaded data into the WS server
 
-            var wasRecording = isRecording; var wasStreaming = isStreaming;
+            var wasRecording = isRecording; var wasStreaming = isStreaming; var prevMuteStatus = AllInputDevicesMuted;
+
             var recordingStatus = WebSocket.GetRecordStatus();
-            var streamingStatus = WebSocket.GetStreamStatus();
+            var streamingStatus = WebSocket.GetStreamStatus(); ;
             isRecording = recordingStatus.IsRecording;
             isStreaming = streamingStatus.Duration > 0;
+            AllInputDevicesMuted = GetAllDevicesMuted();
 
             if (wasRecording != isRecording) OnUpdatedRecordingStatus();
             if (wasStreaming != isStreaming) OnUpdatedStreamingStatus();
+            if (prevMuteStatus != AllInputDevicesMuted) OnMuteStatusChanged();
 
             IsConnected = true;
 
@@ -151,12 +180,12 @@ namespace Nest_Deck
         {
             public List<string> Scenes { get; set; }
 
-            public SimplifiedData () 
+            public SimplifiedData()
             {
                 Scenes = new List<string>();
             }
         }
-        public SimplifiedData SimplifyData ()
+        public SimplifiedData SimplifyData()
         {
             var sdata = new SimplifiedData();
             foreach (var s in Scenes) sdata.Scenes.Add(s.Name);
@@ -168,8 +197,8 @@ namespace Nest_Deck
             public string Command = "";
             public string Parameter1 = "";
             public string Parameter2 = "";
-            public OBSData () 
-            { 
+            public OBSData()
+            {
             }
             public void LoadData(string JSON)
             {
@@ -178,7 +207,7 @@ namespace Nest_Deck
                 this.Parameter1 = tmp.Parameter1;
                 this.Parameter2 = tmp.Parameter2;
             }
-            public string Serialize() {  return JsonConvert.SerializeObject(this); }
+            public string Serialize() { return JsonConvert.SerializeObject(this); }
         }
         public static class Commands
         {
@@ -208,7 +237,7 @@ namespace Nest_Deck
 
             //OBS
             public const string StudioToggle = "togglestudiomode";
-            
+
         }
         public class Device
         {
@@ -306,7 +335,7 @@ namespace Nest_Deck
                 case OBS.Commands.InputSetVolume:
                     {
                         float val = float.Parse(command.Parameter2);
-                        obs.SetInputVolume(command.Parameter1, val , true);
+                        obs.SetInputVolume(command.Parameter1, val, true);
                         break;
                     }
                 case OBS.Commands.SourceToggle:
